@@ -1,108 +1,61 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI - Owner Profit Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
-        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }</style>
 </head>
-<body class="min-h-screen p-8">
-
-    <div class="max-w-5xl mx-auto">
+<body class="p-8">
+    <div class="max-w-4xl mx-auto">
         <header class="flex justify-between items-center mb-12">
-            <div>
-                <h1 class="text-4xl font-black italic tracking-tighter">EXECUTIVE <span class="text-rose-500">DASHBOARD</span></h1>
-                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Laporan Profit ALI Retail</p>
-            </div>
-            <button onclick="logout()" class="p-4 glass rounded-2xl hover:bg-rose-500 transition-all">LOGOUT</button>
+            <h1 class="text-3xl font-black italic tracking-tighter">ALI <span class="text-rose-500">EXECUTIVE</span></h1>
+            <button onclick="window.top.location.href='?page=index'" class="bg-white/5 px-6 py-2 rounded-xl font-bold text-xs hover:bg-rose-500 transition-all">LOGOUT</button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div class="glass p-8 rounded-[2.5rem]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white/5 p-10 rounded-[3rem] border border-white/5">
+                <p class="text-slate-500 text-[10px] font-black uppercase mb-2">Estimasi Laba Bersih</p>
+                <h2 id="profit" class="text-5xl font-black text-rose-500 tracking-tighter italic">Rp 0</h2>
+            </div>
+            <div class="bg-white/5 p-10 rounded-[3rem] border border-white/5">
                 <p class="text-slate-500 text-[10px] font-black uppercase mb-2">Total Omzet</p>
-                <h2 id="owner-omzet" class="text-3xl font-black tracking-tighter">Rp 0</h2>
-                <div class="mt-4 text-xs font-bold text-slate-500"><span id="trx-count">0</span> Transaksi Selesai</div>
-            </div>
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-rose-500 bg-rose-500/5">
-                <p class="text-rose-500 text-[10px] font-black uppercase mb-2">Laba Bersih (Profit)</p>
-                <h2 id="owner-profit" class="text-4xl font-black tracking-tighter text-rose-500">Rp 0</h2>
-                <div class="mt-4 text-xs font-bold text-slate-500">Setelah dikurangi HPP</div>
-            </div>
-            <div class="glass p-8 rounded-[2.5rem]">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-2">Produk Terjual</p>
-                <h2 id="owner-items" class="text-3xl font-black tracking-tighter">0</h2>
-                <div class="mt-4 text-xs font-bold text-slate-500 italic">Total Item Keluar</div>
+                <h2 id="omzet" class="text-4xl font-black tracking-tighter italic text-slate-200">Rp 0</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div class="glass p-10 rounded-[3rem]">
-                <h3 class="text-sm font-black uppercase mb-8 tracking-widest text-slate-400 text-center">Analisa Margin Profit</h3>
-                <div class="max-w-[250px] mx-auto">
-                    <canvas id="profitChart"></canvas>
-                </div>
-            </div>
-            <div class="space-y-4">
-                <button onclick="fetchData()" class="w-full py-6 glass rounded-[2rem] font-black hover:bg-white/10 transition-all">REFRESH DATA</button>
-                <button onclick="window.location.href='admin.html'" class="w-full py-6 glass rounded-[2rem] font-black text-slate-400 hover:text-white transition-all italic">MASUK MODE ADMIN &rarr;</button>
-                <div class="p-6 text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                    Update Terakhir: <span id="last-update">-</span>
-                </div>
-            </div>
+        <div class="bg-white/5 p-10 rounded-[3rem] border border-white/5 flex flex-col items-center">
+            <h3 class="text-xs font-black uppercase text-slate-500 mb-8 tracking-widest text-center">Komposisi Keuangan</h3>
+            <div class="w-48 h-48"><canvas id="chart"></canvas></div>
+            <button onclick="loadOwnerData()" class="mt-8 text-rose-500 font-black text-xs uppercase tracking-widest hover:text-white transition-all underline">Segarkan Data</button>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzPkjgNLIU_nqqi01210aukznvC7rXWXTLdsIOQKmQa2t4Qskzg80jfQlPfeWHKxn524Q/exec"; // GANTI INI
-        let myChart;
-
         window.onload = () => {
             const user = JSON.parse(sessionStorage.getItem('ali_user'));
-            if (!user || user.role.toLowerCase() !== 'owner') window.location.href = "index.html";
-            fetchData();
+            if(!user || user.role.toLowerCase() !== 'owner') window.top.location.href = "?page=index";
+            loadOwnerData();
         };
 
-        async function fetchData() {
-            try {
-                const res = await fetch(`${API_URL}?action=getOwnerReport`);
-                const data = await res.json();
-
-                document.getElementById('owner-omzet').innerText = "Rp " + data.omzet.toLocaleString();
-                document.getElementById('owner-profit').innerText = "Rp " + data.profit.toLocaleString();
-                document.getElementById('owner-items').innerText = data.totalItemTerjual.toLocaleString();
-                document.getElementById('trx-count').innerText = data.transaksiCount;
-                document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
-
+        function loadOwnerData() {
+            google.script.run.withSuccessHandler(data => {
+                document.getElementById('profit').innerText = "Rp " + data.profit.toLocaleString();
+                document.getElementById('omzet').innerText = "Rp " + data.omzet.toLocaleString();
                 renderChart(data.omzet, data.profit);
-            } catch (e) { alert("Koneksi ke server terputus!"); }
+            }).getOwnerReport();
         }
 
-        function renderChart(omzet, profit) {
-            const ctx = document.getElementById('profitChart').getContext('2d');
-            const hpp = omzet - profit;
-
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
+        function renderChart(o, p) {
+            new Chart(document.getElementById('chart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Profit', 'HPP (Modal)'],
-                    datasets: [{
-                        data: [profit, hpp],
-                        backgroundColor: ['#e11d48', 'rgba(255,255,255,0.1)'],
-                        borderWidth: 0
-                    }]
+                    datasets: [{ data: [p, o-p], backgroundColor: ['#f43f5e', 'rgba(255,255,255,0.05)'], borderWidth: 0 }]
                 },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
+                options: { cutout: '85%' }
             });
         }
-
-        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
     </script>
 </body>
 </html>
