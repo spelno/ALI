@@ -3,155 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI Executive Dashboard</title>
+    <title>ALI Owner - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: white; }
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); }
-        .neon-text { text-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
-        .gradient-card { background: linear-gradient(135deg, rgba(225,29,72,0.1) 0%, rgba(2,6,23,1) 100%); }
-        /* Animasi Modal */
-        #modalHistory { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; pointer-events: none; transform: translateY(20px); }
-        #modalHistory.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .neon-border { border-left: 4px solid #f43f5e; box-shadow: -10px 0 20px -10px rgba(244, 63, 94, 0.3); }
+        #modal { transition: 0.3s; opacity: 0; pointer-events: none; transform: scale(0.95); }
+        #modal.active { opacity: 1; pointer-events: auto; transform: scale(1); }
     </style>
 </head>
-<body class="p-6 md:p-10">
+<body class="p-6 md:p-12">
 
     <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-4">
             <div>
-                <h1 class="text-4xl font-black tracking-tighter italic uppercase neon-text">
-                    ALI <span class="text-rose-500">INSIGHT</span>
-                </h1>
-                <div class="flex items-center gap-3 mt-2">
-                    <span id="realtime-clock" class="bg-rose-500/10 text-rose-500 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border border-rose-500/20 italic">Loading Time...</span>
-                    <span class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Executive Mode</span>
-                </div>
+                <h1 class="text-4xl font-black italic tracking-tighter uppercase text-white">ALI <span class="text-rose-500 underline">OWNER</span></h1>
+                <p id="clock" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-2 italic"></p>
             </div>
             <div class="flex gap-4">
-                <button onclick="fetchData()" class="p-4 glass rounded-2xl hover:bg-white/5 transition-all text-xs font-black uppercase tracking-widest">Sync Data</button>
-                <button onclick="location.href='index.html'" class="p-4 bg-rose-500 text-white rounded-2xl hover:bg-rose-600 transition-all text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-500/20">Exit</button>
+                <button onclick="fetchData()" class="p-4 glass rounded-2xl hover:bg-white/5 font-black text-[10px] uppercase tracking-widest">Refresh</button>
+                <button onclick="location.href='index.html'" class="p-4 bg-rose-500 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-500/20">Logout</button>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-            
-            <div class="lg:col-span-4 space-y-6">
-                <div class="glass gradient-card p-10 rounded-[3rem] relative overflow-hidden group">
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Net Profit Estimasi</p>
-                    <h2 id="profit" class="text-5xl font-black italic tracking-tighter text-rose-500 mb-2">Rp 0</h2>
-                    <div id="margin-val" class="text-emerald-500 text-xs font-bold italic">+0% Margin</div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass p-10 rounded-[3rem] neon-border">
+                    <p class="text-slate-500 text-[10px] font-black uppercase mb-3 tracking-widest">Estimasi Profit</p>
+                    <h2 id="profit" class="text-5xl font-black text-rose-500 italic tracking-tighter">Rp 0</h2>
+                    <div id="margin" class="text-emerald-500 text-[10px] font-bold mt-2 uppercase tracking-widest">Margin 0%</div>
                 </div>
-
-                <div class="glass p-10 rounded-[3rem]">
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Gross Omset</p>
-                    <h2 id="omzet" class="text-3xl font-black italic tracking-tighter">Rp 0</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass p-8 rounded-[2.5rem]">
+                        <p class="text-slate-500 text-[9px] font-black uppercase mb-2">Total Omzet</p>
+                        <h3 id="omzet" class="text-xl font-bold italic tracking-tighter">Rp 0</h3>
+                    </div>
+                    <div class="glass p-8 rounded-[2.5rem]">
+                        <p class="text-slate-500 text-[9px] font-black uppercase mb-2">Item Terjual</p>
+                        <h3 id="items" class="text-xl font-bold italic tracking-tighter text-emerald-500">0</h3>
+                    </div>
                 </div>
-
-                <div class="glass p-10 rounded-[3rem] border-l-4 border-emerald-500">
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Items Sold</p>
-                    <h2 id="items" class="text-3xl font-black italic tracking-tighter text-emerald-500">0</h2>
-                </div>
+                <button onclick="toggleModal()" class="w-full py-6 glass rounded-3xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/5 transition-all">Lihat History Transaksi</button>
             </div>
 
-            <div class="lg:col-span-8 glass p-10 rounded-[4rem] flex flex-col items-center justify-center relative overflow-hidden">
-                <div class="absolute top-10 left-10">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-slate-500">Market Share & Margin</h3>
-                </div>
-                <div class="w-72 h-72 z-10"><canvas id="mainChart"></canvas></div>
-                
-                <div class="grid grid-cols-2 gap-4 mt-12 w-full max-w-md">
-                    <button onclick="toggleModal('history')" class="bg-white text-slate-900 py-5 rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-rose-500 hover:text-white transition-all shadow-xl">
-                        Detail Transaksi
-                    </button>
-                    <button onclick="alert('Laporan PDF Sedang Disiapkan')" class="glass py-5 rounded-3xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white/5 transition-all text-slate-400">
-                        Export Report
-                    </button>
-                </div>
+            <div class="lg:col-span-7 glass rounded-[4rem] p-12 flex flex-col items-center justify-center min-h-[400px]">
+                <h3 class="text-[10px] font-black uppercase text-slate-600 mb-10 tracking-[0.5em]">Profitability Ratio</h3>
+                <div class="w-64 h-64"><canvas id="chart"></canvas></div>
             </div>
         </div>
     </div>
 
-    <div id="modalHistory" class="fixed inset-0 z-50 flex items-center justify-end p-4 md:p-10 bg-black/60 backdrop-blur-md">
-        <div class="w-full max-w-2xl h-full glass rounded-[3rem] shadow-2xl flex flex-col p-8 md:p-12 border border-white/10">
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
+        <div class="bg-slate-900 w-full max-w-xl h-[80vh] rounded-[3rem] border border-white/5 p-10 flex flex-col">
             <div class="flex justify-between items-center mb-10">
-                <h2 class="text-2xl font-black italic uppercase tracking-tighter">Transaction <span class="text-rose-500">History</span></h2>
-                <button onclick="toggleModal('history')" class="w-12 h-12 glass rounded-full flex items-center justify-center font-bold text-xl hover:bg-rose-500 transition-all border-none">&times;</button>
+                <h2 class="text-2xl font-black italic uppercase tracking-tighter">Recent <span class="text-rose-500">History</span></h2>
+                <button onclick="toggleModal()" class="text-slate-500 hover:text-white font-bold">&times; CLOSE</button>
             </div>
-            
-            <div id="history-container" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scroll">
+            <div id="history-list" class="flex-1 overflow-y-auto pr-2 space-y-4">
                 </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "URL_HASIL_DEPLOY_ANDA"; // GANTI DENGAN URL EXEC ANDA
-        let chartInstance;
+        const API_URL = "https://script.google.com/macros/s/AKfycbyUfnbfn_A0D7Gnop7CBjGzmBwuPbt-5KurG1YoWbazcgWKExqLQB4z-agQPZrtUctFtw/exec"; // GANTI INI
+        let chart;
 
-        // --- UPDATE JAM REALTIME ---
         function updateClock() {
-            const now = new Date();
-            const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            document.getElementById('realtime-clock').innerText = now.toLocaleDateString('id-ID', options).toUpperCase();
+            const n = new Date();
+            document.getElementById('clock').innerText = n.toLocaleDateString('id-ID', {weekday:'long', day:'2-digit', month:'long', year:'numeric'}) + " | " + n.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
 
-        // --- FETCH DATA ---
         async function fetchData() {
-            try {
-                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getOwnerReport" })});
-                const result = await res.json();
-                if(result.status === "success") {
-                    const d = result.data;
-                    document.getElementById('profit').innerText = "Rp " + d.profit.toLocaleString();
-                    document.getElementById('omzet').innerText = "Rp " + d.omzet.toLocaleString();
-                    document.getElementById('items').innerText = d.totalItems.toLocaleString();
-                    document.getElementById('margin-val').innerText = "+" + d.margin + "% Profit Margin";
-                    
-                    renderHistory(d.history);
-                    renderChart(d.omzet, d.profit);
-                }
-            } catch (e) { console.error(e); }
+            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getOwnerReport" })});
+            const r = await res.json();
+            if(r.status === "success") {
+                const d = r.data;
+                document.getElementById('profit').innerText = "Rp " + d.profit.toLocaleString();
+                document.getElementById('omzet').innerText = "Rp " + d.omzet.toLocaleString();
+                document.getElementById('items').innerText = d.totalItems.toLocaleString();
+                document.getElementById('margin').innerText = "Margin Keuntungan " + d.margin + "%";
+                
+                renderHistory(d.history);
+                renderChart(d.omzet, d.profit);
+            }
         }
 
         function renderHistory(history) {
-            const container = document.getElementById('history-container');
-            container.innerHTML = history.map(h => `
-                <div class="p-6 bg-white/5 rounded-3xl border border-white/5 flex justify-between items-center hover:bg-white/10 transition-all group">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${h.waktu}</p>
-                        <h4 class="font-bold text-slate-200 group-hover:text-rose-500 transition-colors">${h.nama}</h4>
-                        <p class="text-[10px] text-slate-600 font-bold italic">${h.qty} Item terjual</p>
-                    </div>
-                    <div class="text-xl font-black italic tracking-tighter text-rose-500">Rp ${h.total.toLocaleString()}</div>
+            document.getElementById('history-list').innerHTML = history.map(h => `
+                <div class="p-6 bg-white/5 rounded-2xl flex justify-between items-center">
+                    <div><p class="text-[9px] text-slate-500 font-black uppercase mb-1">${h.waktu}</p><p class="font-bold text-slate-200">${h.nama}</p></div>
+                    <div class="text-lg font-black italic text-rose-500">Rp ${h.total.toLocaleString()}</div>
                 </div>
             `).join('');
         }
 
         function renderChart(o, p) {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [p, o - p],
-                        backgroundColor: ['#f43f5e', 'rgba(255,255,255,0.03)'],
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
+                data: { datasets: [{ data: [p, o-p], backgroundColor: ['#f43f5e', 'rgba(255,255,255,0.03)'], borderWidth: 0 }] },
                 options: { cutout: '85%', plugins: { legend: { display: false } } }
             });
         }
 
-        function toggleModal(id) {
-            document.getElementById('modalHistory').classList.toggle('active');
-        }
-
-        window.onload = fetchData;
+        function toggleModal() { document.getElementById('modal').classList.toggle('active'); }
+        window.onload = () => { updateClock(); fetchData(); };
     </script>
 </body>
 </html>
