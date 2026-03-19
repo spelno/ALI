@@ -1,52 +1,196 @@
-/** * ALI POS SYSTEM - ADMIN API v3.5
- * Update: Expense Tracking & Detailed Admin Logs
- */
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI - Admin Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; color: #1e293b; }
+        .modal { transition: all 0.3s ease; opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .modal.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        .card-neo { background: white; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="p-6 md:p-10">
 
-// ... (Gunakan variabel SS dan SHEETS dari kode sebelumnya) ...
-// Tambahkan baris ini di bagian konstanta SHEETS:
-// PENGELUARAN: SS.getSheetByName("Pengeluaran")
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tighter italic text-slate-900">ADMIN <span class="text-rose-500 underline">CENTER</span></h1>
+                <p id="admin-info" class="text-[10px] font-black uppercase text-slate-400 mt-1 tracking-widest">Memuat Sesi...</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="toggleModal('menuModal')" class="bg-slate-900 text-white p-4 rounded-2xl shadow-xl hover:bg-rose-600 transition-all font-black text-xs uppercase tracking-widest">
+                    Quick Menu ☰
+                </button>
+            </div>
+        </header>
 
-function doPost(e) {
-  let request = JSON.parse(e.postData.contents);
-  const action = request.action;
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="card-neo p-6 rounded-[2rem]">
+                <p class="text-[9px] font-black text-slate-400 uppercase">Stok Aman</p>
+                <h3 id="stat-safe" class="text-2xl font-black text-emerald-500">0</h3>
+            </div>
+            <div class="card-neo p-6 rounded-[2rem] border-b-4 border-rose-500">
+                <p class="text-[9px] font-black text-slate-400 uppercase">Stok Kritis</p>
+                <h3 id="stat-low" class="text-2xl font-black text-rose-500 underline">0</h3>
+            </div>
+            <div class="card-neo p-6 rounded-[2rem]">
+                <p class="text-[9px] font-black text-slate-400 uppercase">Penjualan Hari Ini</p>
+                <h3 id="stat-sales" class="text-2xl font-black text-slate-800">0</h3>
+            </div>
+            <div class="card-neo p-6 rounded-[2rem]">
+                <p class="text-[9px] font-black text-slate-400 uppercase">Pengeluaran</p>
+                <h3 id="stat-exp" class="text-2xl font-black text-orange-500">0</h3>
+            </div>
+        </div>
 
-  // --- ACTION: GET ADMIN DASHBOARD (Data Lengkap) ---
-  if (action === "getAdminData") {
-    const prd = ss.getSheetByName("Produk").getDataRange().getValues();
-    const trx = ss.getSheetByName("Transaksi").getDataRange().getValues();
-    const exp = ss.getSheetByName("Pengeluaran").getDataRange().getValues();
-    
-    // Ambil 20 transaksi terakhir
-    let recentTrx = trx.slice(-20).reverse().map(r => ({
-      tgl: Utilities.formatDate(new Date(r[0]), "GMT+8", "dd/MM HH:mm"),
-      nama: r[4], total: r[7]
-    }));
+        <div class="card-neo rounded-[2.5rem] overflow-hidden">
+            <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <h2 class="font-black text-xs uppercase tracking-widest text-slate-400 italic">Inventory Stock List</h2>
+                <input type="text" id="search" oninput="renderTable()" placeholder="Cari barang..." class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50/80 text-[10px] font-black text-slate-400 uppercase">
+                        <tr><th class="p-6">Barang</th><th>Kategori</th><th>Stok</th><th class="text-right p-6">Status</th></tr>
+                    </thead>
+                    <tbody id="product-body" class="divide-y divide-slate-50 font-bold text-slate-700">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    // Ambil 20 pengeluaran terakhir
-    let recentExp = exp.slice(-20).reverse().map(r => ({
-      tgl: Utilities.formatDate(new Date(r[0]), "GMT+8", "dd/MM"),
-      ket: r[1], jumlah: r[2]
-    }));
+    <div id="menuModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl relative">
+            <button onclick="toggleModal('menuModal')" class="absolute top-6 right-8 text-2xl font-bold text-slate-300 hover:text-rose-500">&times;</button>
+            <h2 class="text-xl font-black uppercase italic mb-8 tracking-tighter">Admin <span class="text-rose-500">Actions</span></h2>
+            
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="showSection('history')" class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl hover:bg-rose-50 transition-all group">
+                    <span class="text-2xl">📊</span>
+                    <div class="text-left"><p class="font-black text-xs uppercase tracking-widest group-hover:text-rose-500">History Penjualan</p><p class="text-[9px] text-slate-400">Lihat transaksi masuk terbaru</p></div>
+                </button>
+                <button onclick="showSection('expense')" class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl hover:bg-orange-50 transition-all group">
+                    <span class="text-2xl">💸</span>
+                    <div class="text-left"><p class="font-black text-xs uppercase tracking-widest group-hover:text-orange-500">Catat Pengeluaran</p><p class="text-[9px] text-slate-400">Listrik, Air, Plastik, dsb.</p></div>
+                </button>
+                <button onclick="alert('Fitur segera hadir')" class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl hover:bg-emerald-50 transition-all group">
+                    <span class="text-2xl">➕</span>
+                    <div class="text-left"><p class="font-black text-xs uppercase tracking-widest group-hover:text-emerald-500">Tambah Produk Baru</p><p class="text-[9px] text-slate-400">Registrasi barcode baru</p></div>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    return createResponse({
-      status: "success",
-      products: prd.slice(1), // Semua produk
-      history: recentTrx,
-      expenses: recentExp
-    });
-  }
+    <div id="sectionModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-md">
+        <div class="bg-white w-full max-w-2xl h-[80vh] rounded-[3rem] p-10 shadow-2xl flex flex-col">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="sectionTitle" class="text-2xl font-black italic uppercase tracking-tighter text-slate-800">History</h2>
+                <button onclick="toggleModal('sectionModal')" class="text-slate-300 font-bold hover:text-rose-500">CLOSE</button>
+            </div>
+            <div id="sectionContent" class="flex-1 overflow-y-auto pr-2 space-y-4">
+                </div>
+        </div>
+    </div>
 
-  // --- ACTION: ADD EXPENSE (Catat Pengeluaran) ---
-  if (action === "addExpense") {
-    const sheet = ss.getSheetByName("Pengeluaran");
-    sheet.appendRow([new Date(), request.keterangan, request.jumlah, request.admin]);
-    return createResponse({ status: "success", message: "Pengeluaran dicatat!" });
-  }
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbz0YSEMOxuv_0py3PcnEbnbcbA7eQkU5C-K-Ykb05Bpa-nlyaSG1ctCM2SYIDNKajpH9Q/exec";
+        let masterData = { products: [], history: [], expenses: [] };
 
-  // ... (Sertakan juga action login dan getProducts dari script sebelumnya) ...
-}
+        async function fetchAdminData() {
+            const admin = JSON.parse(sessionStorage.getItem('ali_user'));
+            if(!admin) location.href = "index.html";
+            document.getElementById('admin-info').innerText = "Active Admin: " + admin.nama;
 
-function createResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-}
+            try {
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" })});
+                const result = await res.json();
+                if(result.status === "success") {
+                    masterData = result;
+                    updateStats();
+                    renderTable();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateStats() {
+            const low = masterData.products.filter(p => p[6] <= p[7]); // Stok vs Stok Minimal
+            document.getElementById('stat-low').innerText = low.length;
+            document.getElementById('stat-safe').innerText = masterData.products.length - low.length;
+            document.getElementById('stat-sales').innerText = masterData.history.length;
+            document.getElementById('stat-exp').innerText = masterData.expenses.length;
+        }
+
+        function renderTable() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const tbody = document.getElementById('product-body');
+            const filtered = masterData.products.filter(p => p[1].toLowerCase().includes(search));
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-6"><div>${p[1]}</div><div class="text-[9px] text-slate-300 uppercase">${p[0]}</div></td>
+                    <td><span class="bg-slate-100 px-2 py-1 rounded text-[9px] uppercase font-bold text-slate-400">${p[2]}</span></td>
+                    <td>${p[6]} ${p[3]}</td>
+                    <td class="text-right p-6">
+                        ${p[6] <= p[7] ? '<span class="text-rose-500 text-[10px] font-black uppercase animate-pulse italic">Kritis</span>' : '<span class="text-emerald-500 text-[10px] font-black uppercase italic">Aman</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showSection(type) {
+            toggleModal('menuModal');
+            toggleModal('sectionModal');
+            const title = document.getElementById('sectionTitle');
+            const content = document.getElementById('sectionContent');
+
+            if(type === 'history') {
+                title.innerHTML = "History <span class='text-rose-500'>Penjualan</span>";
+                content.innerHTML = masterData.history.map(h => `
+                    <div class="p-5 bg-slate-50 rounded-2xl flex justify-between border-l-4 border-rose-500">
+                        <div><p class="text-[9px] font-black text-slate-400 uppercase">${h.tgl}</p><p class="font-bold">${h.nama}</p></div>
+                        <div class="text-lg font-black italic">Rp ${h.total.toLocaleString()}</div>
+                    </div>
+                `).join('');
+            } else if(type === 'expense') {
+                title.innerHTML = "Daftar <span class='text-orange-500'>Pengeluaran</span>";
+                content.innerHTML = `
+                    <div class="bg-orange-50 p-6 rounded-3xl mb-6">
+                        <input type="text" id="expKet" placeholder="Keterangan (Contoh: Listrik)" class="w-full mb-3 p-3 rounded-xl border-none outline-none font-bold text-sm">
+                        <input type="number" id="expNom" placeholder="Nominal (Contoh: 50000)" class="w-full mb-4 p-3 rounded-xl border-none outline-none font-bold text-sm">
+                        <button onclick="saveExpense()" class="w-full bg-orange-500 text-white font-black py-3 rounded-xl uppercase tracking-widest text-[10px]">Simpan Pengeluaran</button>
+                    </div>
+                    <div class="space-y-3">
+                        ${masterData.expenses.map(e => `
+                            <div class="flex justify-between p-4 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-400">${e.tgl}</span>
+                                <span class="text-xs font-black uppercase text-slate-700">${e.ket}</span>
+                                <span class="text-xs font-black text-orange-500">Rp ${Number(e.jumlah).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        async function saveExpense() {
+            const ket = document.getElementById('expKet').value;
+            const nom = document.getElementById('expNom').value;
+            const admin = JSON.parse(sessionStorage.getItem('ali_user')).nama;
+            if(!ket || !nom) return alert("Isi semua data!");
+
+            await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "addExpense", keterangan: ket, jumlah: nom, admin: admin })});
+            alert("Berhasil!");
+            toggleModal('sectionModal');
+            fetchAdminData();
+        }
+
+        function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
+        window.onload = fetchAdminData;
+    </script>
+</body>
+</html>
