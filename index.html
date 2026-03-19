@@ -3,102 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI System - Login</title>
+    <title>ALI System - Login Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6">
+<body class="h-screen flex items-center justify-center p-6 text-slate-800">
 
-    <div class="bg-white w-full max-w-sm p-10 rounded-[2.5rem] shadow-2xl scale-100 hover:scale-[1.02] transition-transform duration-500">
+    <div class="bg-white w-full max-w-sm p-10 rounded-[3rem] shadow-2xl">
         <div class="text-center mb-10">
-            <div class="w-20 h-20 ali-gradient rounded-[2rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
-            <h1 class="text-2xl font-black tracking-tighter uppercase text-slate-800">Integrated <span class="text-rose-500">System</span></h1>
-            <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Login to Your Dashboard</p>
+            <div class="w-20 h-20 ali-gradient rounded-[2.5rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase">ALI <span class="text-rose-500">POS</span></h1>
+            <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">Authentication Portal</p>
         </div>
 
         <div class="space-y-4">
-            <div class="group">
-                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Username</label>
-                <input type="text" id="username" placeholder="Masukkan username..." 
-                    class="w-full bg-slate-50 border-2 border-transparent rounded-2xl p-4 outline-none focus:border-rose-500/20 focus:bg-white font-bold transition-all text-slate-700">
-            </div>
+            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500/20 font-bold transition-all">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500/20 font-bold transition-all">
             
-            <div class="group">
-                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Password</label>
-                <input type="password" id="password" placeholder="••••••••" 
-                    class="w-full bg-slate-50 border-2 border-transparent rounded-2xl p-4 outline-none focus:border-rose-500/20 focus:bg-white font-bold transition-all text-slate-700">
-            </div>
-
-            <button onclick="handleLogin()" id="btnLogin" 
-                class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase tracking-widest text-sm">
+            <button onclick="prosesLogin()" id="btn" class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase tracking-widest text-sm">
                 Masuk Dashboard
             </button>
         </div>
-
-        <p class="text-center text-[9px] text-slate-300 font-bold uppercase tracking-widest mt-10">© 2026 Professional ALI POS</p>
     </div>
 
     <script>
-        // PENTING: Masukkan URL Deployment Apps Script Anda (yang berakhir /exec)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxF8kn_Rsj5TtJOcyKnis8iAXYOC5JOcvNfgu2f3-VZaaDfgMrQAitg280ZR5GJgJh65g/exec";
+        // PENTING: GANTI DENGAN URL /exec TERBARU ANDA
+        const API_URL = "https://script.google.com/macros/s/AKfycbyUfnbfn_A0D7Gnop7CBjGzmBwuPbt-5KurG1YoWbazcgWKExqLQB4z-agQPZrtUctFtw/exec";
 
-        async function handleLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const btn = document.getElementById('btnLogin');
+        async function prosesLogin() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const b = document.getElementById('btn');
 
-            if(!u || !p) {
-                alert("Mohon isi semua bidang!");
-                return;
-            }
+            if(!u || !p) return alert("Isi username & password!");
 
-            btn.innerText = "VERIFIKASI DATA...";
-            btn.disabled = true;
+            b.innerText = "VERIFIKASI...";
+            b.disabled = true;
 
             try {
-                const response = await fetch(API_URL, {
+                const res = await fetch(API_URL, {
                     method: "POST",
-                    body: JSON.stringify({
-                        action: "login",
-                        username: u,
-                        password: p
-                    })
+                    body: JSON.stringify({ action: "login", username: u, password: p })
                 });
+                const resJson = await res.json();
 
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    // Simpan identitas user ke Session Storage browser
-                    sessionStorage.setItem('ali_user', JSON.stringify(result.user));
+                if (resJson.status === "success") {
+                    // Simpan data login ke browser
+                    sessionStorage.setItem('ali_user', JSON.stringify(resJson.user));
                     
-                    // Navigasi otomatis ke file HTML berdasarkan Role
-                    // Contoh: role 'admin' akan membuka 'admin.html' di GitHub
-                    const targetPage = result.user.role + ".html";
-                    window.location.href = targetPage;
+                    // LOGIKA REDIRECT BERDASARKAN ROLE
+                    const role = resJson.user.role.toLowerCase().trim();
+                    console.log("Mengarahkan user dengan role:", role);
+
+                    if (role === "owner") {
+                        window.location.href = "owner.html";
+                    } else if (role === "admin") {
+                        window.location.href = "admin.html";
+                    } else if (role === "kasir") {
+                        window.location.href = "kasir.html";
+                    } else {
+                        alert("Role tidak dikenali: " + role);
+                        location.reload();
+                    }
                 } else {
-                    alert("Akses Ditolak: " + result.message);
-                    resetButton(btn);
+                    alert("Gagal: " + resJson.message);
+                    b.innerText = "Masuk Dashboard";
+                    b.disabled = false;
                 }
-            } catch (error) {
-                console.error("Login Error:", error);
-                alert("Gagal terhubung ke API. Pastikan URL API benar.");
-                resetButton(btn);
+            } catch (err) {
+                alert("Error Koneksi Jaringan!");
+                b.innerText = "Masuk Dashboard";
+                b.disabled = false;
             }
         }
 
-        function resetButton(btn) {
-            btn.innerText = "MASUK DASHBOARD";
-            btn.disabled = false;
-        }
-
-        // Fitur Enter untuk Login
-        document.onkeydown = function(e) {
-            if (e.key === "Enter") handleLogin();
-        };
+        // Enter untuk login
+        document.onkeydown = (e) => { if(e.key === "Enter") prosesLogin(); };
     </script>
 </body>
 </html>
