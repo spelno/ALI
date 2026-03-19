@@ -2,136 +2,74 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI - Executive Performance (Professional)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
-        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }</style>
 </head>
-<body class="min-h-screen p-8">
-
+<body class="p-8">
     <div class="max-w-5xl mx-auto">
         <header class="flex justify-between items-center mb-12">
-            <div>
-                <h1 class="text-4xl font-black italic tracking-tighter uppercase">Executive <span class="text-rose-500 text-2xl tracking-widest">Reports</span></h1>
-                <p id="owner-name" class="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Memuat Sesi...</p>
-            </div>
-            <button onclick="logout()" class="p-4 glass rounded-2xl hover:bg-rose-500 transition-all font-black text-[10px] tracking-widest uppercase">LOGOUT</button>
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase">Executive <span class="text-rose-500">Ali POS</span></h1>
+            <button onclick="location.href='index.html'" class="bg-white/5 px-6 py-2 rounded-xl text-[10px] font-black hover:bg-rose-500 transition-all uppercase tracking-widest">Logout</button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div class="glass p-8 rounded-[2.5rem]">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-2 tracking-widest">Total Omzet</p>
-                <h2 id="owner-omzet" class="text-3xl font-black tracking-tighter italic">Rp 0</h2>
-                <div class="mt-4 text-[10px] font-bold text-slate-600 uppercase italic tracking-widest">Data Penjualan Kotor</div>
-            </div>
-            
-            <div class="glass p-8 rounded-[2.5rem] border-l-4 border-rose-500 bg-rose-500/5">
-                <p class="text-rose-500 text-[10px] font-black uppercase mb-2 tracking-widest">Estimasi Profit</p>
-                <h2 id="owner-profit" class="text-4xl font-black tracking-tighter text-rose-500 italic">Rp 0</h2>
-                <div class="mt-4 text-[10px] font-bold text-slate-600 uppercase italic tracking-widest">Laba Bersih (Setelah HPP)</div>
-            </div>
-
-            <div class="glass p-8 rounded-[2.5rem]">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-2 tracking-widest">Produk Terjual</p>
-                <h2 id="owner-items" class="text-3xl font-black tracking-tighter italic">0</h2>
-                <div class="mt-4 text-[10px] font-bold text-slate-600 uppercase italic tracking-widest">Volume Item Keluar</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div class="glass p-10 rounded-[3rem]">
-                <h3 class="text-[10px] font-black uppercase mb-8 tracking-widest text-slate-500 text-center">Analisa Margin Keuntungan</h3>
-                <div class="max-w-[220px] mx-auto">
-                    <canvas id="profitChart"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div class="space-y-6">
+                <div class="bg-white/5 p-10 rounded-[3rem] border border-white/5">
+                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Estimasi Profit</p>
+                    <h2 id="profit" class="text-5xl font-black text-rose-500 tracking-tighter italic">Rp 0</h2>
+                </div>
+                <div class="bg-white/5 p-10 rounded-[3rem] border border-white/5">
+                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">History Transaksi Terbaru</p>
+                    <div id="history-list" class="space-y-4 mt-6 text-sm">
+                        </div>
                 </div>
             </div>
-            
-            <div class="space-y-4">
-                <button onclick="fetchOwnerData()" class="w-full py-6 glass rounded-[2rem] font-black hover:bg-white/10 transition-all uppercase tracking-widest text-sm">REFRESH DATA</button>
-                <div class="p-6 text-center text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">
-                    Update Terakhir: <span id="last-update" class="text-slate-400">-</span>
+
+            <div class="bg-white/5 p-12 rounded-[4rem] border border-white/5 flex flex-col items-center">
+                <h3 class="text-[10px] font-black uppercase text-slate-500 mb-10 tracking-[0.3em]">Profit Margin Analysis</h3>
+                <div class="w-64 h-64"><canvas id="chart"></canvas></div>
+                <div class="mt-12 text-center">
+                    <p id="omzet" class="text-2xl font-bold tracking-tighter italic">Omzet: Rp 0</p>
+                    <p class="text-slate-600 text-[10px] font-black uppercase mt-2 tracking-widest">Total Penjualan Kotor</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // PENTING: Masukkan URL Deployment Apps Script Anda di sini
-        const API_URL = "https://script.google.com/macros/s/AKfycbxF8kn_Rsj5TtJOcyKnis8iAXYOC5JOcvNfgu2f3-VZaaDfgMrQAitg280ZR5GJgJh65g/exec"; 
-        let myChart;
+        const API_URL = "https://script.google.com/macros/s/AKfycbwO5xgXJK55TMBH6G8MuMVwdNxni2jwGj8MvV5yR3LO-AYfWWEsvgsCMlQnWusg9f-UPg/exec"; 
 
-        window.onload = () => {
-            const user = JSON.parse(sessionStorage.getItem('ali_user'));
-            // Proteksi halaman: Hanya Owner yang boleh masuk
-            if (!user || user.role !== 'owner') {
-                window.location.href = "index.html";
-                return;
-            }
-            document.getElementById('owner-name').innerText = "Logged in as: " + user.nama;
-            fetchOwnerData();
-        };
+        async function loadOwnerData() {
+            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getOwnerReport" })});
+            const result = await res.json();
+            
+            if(result.status === "success") {
+                const data = result.data;
+                document.getElementById('profit').innerText = "Rp " + data.profit.toLocaleString();
+                document.getElementById('omzet').innerText = "Omzet: Rp " + data.omzet.toLocaleString();
+                
+                // Render History
+                document.getElementById('history-list').innerHTML = data.history.map(h => `
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <div><span class="text-slate-500 text-[10px] mr-2">${h.waktu}</span><span class="font-bold">${h.nama}</span></div>
+                        <div class="text-rose-500 font-black italic">Rp ${h.total.toLocaleString()}</div>
+                    </div>
+                `).join('');
 
-        async function fetchOwnerData() {
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "getOwnerReport" })
-                });
-
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    const data = result.data;
-                    document.getElementById('owner-omzet').innerText = "Rp " + data.omzet.toLocaleString();
-                    document.getElementById('owner-profit').innerText = "Rp " + data.profit.toLocaleString();
-                    document.getElementById('owner-items').innerText = data.totalItems.toLocaleString();
-                    document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
-
-                    updateChart(data.omzet, data.profit);
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Gagal mengambil data laporan!");
+                renderChart(data.omzet, data.profit);
             }
         }
 
-        function updateChart(omzet, profit) {
-            const hppTotal = omzet - profit; 
-            const ctx = document.getElementById('profitChart').getContext('2d');
-            
-            if (myChart) myChart.destroy();
-            
-            myChart = new Chart(ctx, {
+        function renderChart(o, p) {
+            new Chart(document.getElementById('chart'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Profit', 'HPP'],
-                    datasets: [{
-                        data: [profit, hppTotal],
-                        backgroundColor: ['#e11d48', 'rgba(255,255,255,0.05)'],
-                        hoverOffset: 4,
-                        borderWidth: 0
-                    }]
-                },
-                options: { 
-                    cutout: '85%', 
-                    plugins: { 
-                        legend: { display: false } 
-                    } 
-                }
+                data: { datasets: [{ data: [p, o-p], backgroundColor: ['#f43f5e', 'rgba(255,255,255,0.03)'], borderWidth: 0 }] },
+                options: { cutout: '85%', plugins: { legend: { display: false } } }
             });
         }
-
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = "index.html";
-        }
+        window.onload = loadOwnerData;
     </script>
 </body>
 </html>
