@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI - Premium Retail POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .active-tab { background: #3b82f6 !important; color: white !important; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 80mm; font-family: monospace; }
+        }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-slate-200 h-screen flex flex-col overflow-hidden">
+
+    <div id="login-screen" class="fixed inset-0 bg-[#0f172a] z-[100] flex items-center justify-center">
+        <div class="bg-[#1e293b] w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-slate-800 text-center">
+            <h1 class="text-5xl font-black text-blue-500 mb-2 italic">ALI</h1>
+            <p class="text-slate-500 mb-8 font-medium uppercase tracking-[0.2em] text-xs">Retail Intelligent System</p>
+            <div class="space-y-4">
+                <input type="text" id="user-in" placeholder="Username" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl p-4 outline-none focus:border-blue-500 transition-all">
+                <input type="password" id="pass-in" placeholder="Password" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl p-4 outline-none focus:border-blue-500 transition-all">
+                <button onclick="doLogin()" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">LOGIN KE SISTEM</button>
+            </div>
+            <p id="login-err" class="text-red-400 mt-4 text-sm hidden">Gagal masuk, cek kembali akun Anda.</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="flex flex-1 overflow-hidden opacity-0">
+        <aside class="w-24 bg-[#1e293b] flex flex-col items-center py-8 gap-10 border-r border-slate-800">
+            <div class="text-2xl font-black text-blue-500 italic">A</div>
+            <nav class="flex flex-col gap-8">
+                <button onclick="switchMenu('kasir')" id="nav-kasir" class="p-4 rounded-2xl text-slate-500 active-tab transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </button>
+                <button onclick="switchMenu('stok')" id="nav-stok" class="p-4 rounded-2xl text-slate-500 hidden transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </button>
+            </nav>
+            <button onclick="location.reload()" class="mt-auto p-4 text-red-500 hover:bg-red-500/10 rounded-2xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+            </button>
+        </aside>
+
+        <main class="flex-1 flex flex-col p-10 overflow-hidden">
+            <header class="flex justify-between items-center mb-10">
+                <div>
+                    <h2 id="title-text" class="text-4xl font-extrabold">Menu Kasir</h2>
+                    <p class="text-slate-500 uppercase tracking-widest text-xs mt-1"><span id="u-name">-</span> | <span id="u-role">-</span></p>
+                </div>
+                <div id="search-container" class="w-1/3">
+                    <input type="text" id="search-in" placeholder="Scan Barcode / Cari Merk..." class="w-full bg-[#1e293b] border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-blue-500 outline-none text-white shadow-2xl">
+                </div>
+            </header>
+
+            <div id="view-kasir" class="flex gap-10 flex-1 overflow-hidden">
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-4">
+                    <div id="p-grid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                </div>
+
+                <div class="w-96 bg-[#1e293b] rounded-[3rem] p-10 flex flex-col shadow-2xl border border-slate-800">
+                    <h3 class="font-bold text-xl mb-6">Keranjang Belanja</h3>
+                    <div id="cart-box" class="flex-1 overflow-y-auto custom-scrollbar space-y-4 mb-6"></div>
+                    <div class="space-y-4 border-t border-slate-700 pt-8">
+                        <div class="flex justify-between items-end">
+                            <span class="text-slate-500 font-semibold">TOTAL</span>
+                            <span id="t-price" class="text-4xl font-black text-blue-500">Rp 0</span>
+                        </div>
+                        <input type="number" id="cash-in" placeholder="Tunai (Rp)" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl py-5 text-center text-3xl font-black text-green-400 focus:border-green-500 outline-none">
+                        <button onclick="checkout()" id="btn-pay" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-[1.5rem] text-xl transition-all shadow-lg active:scale-95">PROSES BAYAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-stok" class="hidden flex-1 overflow-y-auto bg-[#1e293b] rounded-[2rem] p-8 border border-slate-800">
+                <table class="w-full text-left border-separate border-spacing-y-3">
+                    <thead class="text-slate-500 text-xs uppercase tracking-tighter">
+                        <tr><th class="px-6 pb-4">Produk</th><th class="pb-4">Kategori</th><th class="text-center pb-4">Stok</th><th class="pb-4">Status</th></tr>
+                    </thead>
+                    <tbody id="s-table"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="print-area" class="hidden text-black p-4">
+        <center>
+            <h2 style="font-size: 20px; font-weight: bold;">TOKO ALI</h2>
+            <p>Bitung, Sulawesi Utara</p>
+            <p>--------------------------------</p>
+        </center>
+        <div id="struk-items"></div>
+        <p>--------------------------------</p>
+        <div id="struk-total" style="font-weight: bold;"></div>
+        <center><p style="margin-top: 20px;">Terima Kasih</p></center>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbysOUMTXh2imnpShK0O6Kq0OSHYaADy6SnqLNYpXbhsxDo2cIIzGChSPX9QP81rk2bWWQ/exec";
+        let user = null;
+        let products = [];
+        let cart = [];
+
+        async function doLogin() {
+            const username = document.getElementById('user-in').value;
+            const password = document.getElementById('pass-in').value;
+            const btn = document.getElementById('btn-login');
+            btn.innerText = "LOADING...";
+            
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', username, password })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    user = data.user;
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
+                    document.getElementById('u-name').innerText = user.nama;
+                    document.getElementById('u-role').innerText = user.role;
+                    if (user.role !== 'Kasir') document.getElementById('nav-stok').classList.remove('hidden');
+                    loadData();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) { alert("Cek Koneksi Internet!"); }
+            btn.innerText = "LOGIN KE SISTEM";
+        }
+
+        async function loadData() {
+            const res = await fetch(`${API_URL}?action=getProducts`);
+            products = await res.json();
+            renderP(products);
+        }
+
+        function renderP(list) {
+            const grid = document.getElementById('p-grid');
+            grid.innerHTML = list.map(p => `
+                <div onclick="add('${p.Barcode}')" class="bg-[#1e293b] p-6 rounded-[2rem] border border-slate-800 cursor-pointer hover:border-blue-500 transition-all hover:-translate-y-2">
+                    <div class="text-[10px] text-blue-400 font-bold uppercase mb-2">${p.Satuan}</div>
+                    <div class="font-bold text-white mb-4 h-12 overflow-hidden leading-tight">${p.Nama_Barang}</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-green-400 font-extrabold text-lg">Rp ${p.Harga_Jual.toLocaleString()}</span>
+                        <span class="text-[10px] text-slate-500">Stok: ${p.Stok_Sekarang}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function add(bc) {
+            const p = products.find(i => i.Barcode == bc);
+            const exist = cart.find(c => c.Barcode == bc);
+            if (exist) exist.Qty++; else cart.push({...p, Qty: 1});
+            updateUI();
+        }
+
+        function updateUI() {
+            const box = document.getElementById('cart-box');
+            let total = 0;
+            box.innerHTML = cart.map(item => {
+                total += item.Harga_Jual * item.Qty;
+                return `
+                    <div class="bg-[#0f172a] p-4 rounded-2xl flex justify-between">
+                        <div><p class="font-bold text-sm">${item.Nama_Barang}</p><p class="text-xs text-slate-500">${item.Qty} x ${item.Harga_Jual.toLocaleString()}</p></div>
+                        <div class="font-bold text-blue-400">Rp ${(item.Qty * item.Harga_Jual).toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('t-price').innerText = `Rp ${total.toLocaleString()}`;
+        }
+
+        async function checkout() {
+            if (cart.length === 0) return;
+            const cash = document.getElementById('cash-in').value;
+            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            if (cash < total) return alert("Uang kurang!");
+
+            document.getElementById('btn-pay').innerText = "MENYIMPAN...";
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveTransaction', admin: user.nama, cart: cart })
+                });
+                alert("Berhasil! Kembalian: Rp " + (cash - total).toLocaleString());
+                printStruk(total, cash);
+                cart = [];
+                updateUI();
+                loadData();
+                document.getElementById('cash-in').value = '';
+            } catch (e) { alert("Gagal Simpan!"); }
+            document.getElementById('btn-pay').innerText = "PROSES BAYAR";
+        }
+
+        function printStruk(total, cash) {
+            const itemBox = document.getElementById('struk-items');
+            itemBox.innerHTML = cart.map(i => `<p>${i.Nama_Barang} x${i.Qty} <span style="float:right">Rp ${(i.Qty*i.Harga_Jual).toLocaleString()}</span></p>`).join('');
+            document.getElementById('struk-total').innerHTML = `TOTAL: Rp ${total.toLocaleString()}<br>BAYAR: Rp ${parseInt(cash).toLocaleString()}<br>KEMBALI: Rp ${(cash-total).toLocaleString()}`;
+            window.print();
+        }
+
+        function switchMenu(m) {
+            document.getElementById('view-kasir').classList.add('hidden');
+            document.getElementById('view-stok').classList.add('hidden');
+            document.getElementById('search-container').classList.add('hidden');
+            document.getElementById('nav-kasir').classList.remove('active-tab');
+            document.getElementById('nav-stok').classList.remove('active-tab');
+
+            if (m === 'kasir') {
+                document.getElementById('view-kasir').classList.remove('hidden');
+                document.getElementById('search-container').classList.remove('hidden');
+                document.getElementById('nav-kasir').classList.add('active-tab');
+                document.getElementById('title-text').innerText = "Menu Kasir";
+            } else {
+                document.getElementById('view-stok').classList.remove('hidden');
+                document.getElementById('nav-stok').classList.add('active-tab');
+                document.getElementById('title-text').innerText = "Manajemen Stok";
+                renderS();
+            }
+        }
+
+        function renderS() {
+            const tb = document.getElementById('s-table');
+            tb.innerHTML = products.map(p => `
+                <tr class="bg-[#263246] text-sm overflow-hidden rounded-2xl">
+                    <td class="px-6 py-4 rounded-l-2xl font-bold">${p.Nama_Barang}</td>
+                    <td class="py-4 text-slate-400">${p.Kategori}</td>
+                    <td class="py-4 text-center font-black">${p.Stok_Sekarang}</td>
+                    <td class="py-4 rounded-r-2xl">
+                        <span class="px-3 py-1 rounded-lg text-[10px] font-bold ${p.Stok_Sekarang <= p.Stok_Minimal ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}">
+                            ${p.Stok_Sekarang <= p.Stok_Minimal ? 'RE-STOCK' : 'AMAN'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('search-in').oninput = (e) => {
+            const v = e.target.value.toLowerCase();
+            renderP(products.filter(p => p.Nama_Barang.toLowerCase().includes(v) || p.Barcode.toString().includes(v)));
+        };
+    </script>
+</body>
+</html>
