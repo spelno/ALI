@@ -3,384 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI - POS System Pro</title>
+    <title>ALI POS - Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; }
         .ali-red { background-color: #e11d48; }
-        .ali-red-text { color: #e11d48; }
-        
-        /* ATURAN CETAK (PRINT) - MEMASTIKAN HANYA STRUK YANG DICETAK */
-        @media print {
-            body > *:not(#print-receipt) {
-                display: none !important;
-            }
-            #print-receipt {
-                display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 10px;
-                background: white;
-                color: black;
-            }
-        }
-
-        /* Sembunyikan struk di layar monitor */
-        #print-receipt { display: none; }
-
-        .cart-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 50px; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 1.2rem 0; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        #catalog-popup { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
+<body class="h-screen flex items-center justify-center p-6">
 
-    <div id="login-screen" class="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
-        <div class="bg-white w-full max-w-md p-10 rounded-[2.5rem] text-center shadow-2xl">
-            <div class="w-16 h-16 ali-red rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-rose-500/30">
-                <span class="text-3xl font-black text-white italic">A</span>
-            </div>
-            <h1 class="text-2xl font-black mb-8 uppercase tracking-tight">Login Kasir ALI</h1>
-            <div class="space-y-4">
-                <input type="text" id="user-in" placeholder="Username" class="w-full bg-slate-100 border-none rounded-xl p-4 outline-none focus:ring-2 focus:ring-rose-500">
-                <input type="password" id="pass-in" placeholder="Password" class="w-full bg-slate-100 border-none rounded-xl p-4 outline-none focus:ring-2 focus:ring-rose-500">
-                <button onclick="doLogin()" class="w-full ali-red text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">MASUK SISTEM</button>
-            </div>
+    <div class="bg-white w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl">
+        <div class="w-16 h-16 ali-red rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-rose-500/30">
+            <span class="text-3xl font-black text-white italic">A</span>
         </div>
-    </div>
-
-    <div id="main-app" class="flex flex-1 overflow-hidden opacity-0 transition-opacity duration-500">
         
-        <aside class="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-8 gap-8 shadow-sm">
-            <div class="text-xl font-black ali-red-text italic mb-4">ALI</div>
-            <button onclick="toggleCatalog()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all group" title="Buka Katalog">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <button onclick="switchView('stok')" class="p-4 rounded-2xl bg-slate-50 text-slate-500 hover:bg-rose-500 hover:text-white transition-all" title="Cek Stok">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            </button>
-            <button onclick="location.reload()" class="mt-auto p-4 text-slate-300 hover:text-rose-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
-            </button>
-        </aside>
-
-        <main class="flex-1 flex flex-col p-8 overflow-hidden bg-[#f8fafc]">
-            <header class="flex justify-between items-end mb-8">
-                <div>
-                    <h2 class="text-4xl font-black text-slate-800 uppercase italic tracking-tighter">KERANJANG BELANJA</h2>
-                    <p class="text-slate-400 font-bold text-xs uppercase tracking-widest"><span id="u-name">-</span> | <span id="u-role">-</span></p>
-                </div>
-                <button onclick="clearCart()" class="text-xs font-black text-slate-400 hover:text-rose-600 uppercase tracking-widest transition-colors">Kosongkan List</button>
-            </header>
-
-            <div class="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-                <div class="cart-row px-10 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <span>Nama Produk</span>
-                    <span class="text-center">Harga</span>
-                    <span class="text-center">Qty</span>
-                    <span class="text-right">Total</span>
-                    <span></span>
-                </div>
-                <div id="cart-list" class="flex-1 overflow-y-auto px-10 custom-scrollbar">
-                    <div class="h-full flex flex-col items-center justify-center text-slate-300 italic gap-4">
-                        <svg class="w-16 h-16 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        Scan barcode atau cari di katalog...
-                    </div>
-                </div>
-                <div class="p-6 bg-slate-50 border-t border-slate-200">
-                    <input type="text" id="barcode-scan" autofocus placeholder="INPUT BARCODE DISINI..." class="w-full bg-white border-2 border-slate-200 rounded-2xl py-5 px-10 text-2xl font-black ali-red-text focus:border-rose-500 outline-none shadow-inner tracking-widest uppercase">
-                </div>
-            </div>
-        </main>
-
-        <aside class="w-[420px] bg-white border-l border-slate-200 p-10 flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
-            <div class="text-center mb-12">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Pembayaran</p>
-                <h1 id="total-display" class="text-6xl font-black ali-red-text tracking-tighter">Rp 0</h1>
-            </div>
-
-            <div class="space-y-6 flex-1 flex flex-col">
-                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Uang Tunai (Rp)</label>
-                    <input type="number" id="cash-in" placeholder="0" class="w-full bg-transparent text-4xl font-black text-slate-800 outline-none border-b-2 border-slate-200 focus:border-rose-500 transition-all mb-4">
-                    <div class="flex justify-between items-center text-emerald-600 font-bold">
-                        <span class="text-[10px] uppercase">Kembalian</span>
-                        <span id="change-display" class="text-xl font-black">Rp 0</span>
-                    </div>
-                </div>
-
-                <button onclick="processCheckout()" id="btn-pay" class="w-full ali-red hover:bg-rose-700 text-white font-black py-8 rounded-[2.2rem] text-2xl shadow-xl shadow-rose-600/30 transition-all active:scale-95 mt-auto">
-                    SELESAI & CETAK
-                </button>
-            </div>
-        </aside>
-    </div>
-
-    <div id="catalog-popup" class="fixed top-0 right-0 w-[550px] h-full bg-white z-[500] shadow-[-30px_0_60px_rgba(0,0,0,0.1)] translate-x-full flex flex-col">
-        <header class="p-8 border-b flex justify-between items-center">
-            <h3 class="text-xl font-black italic uppercase tracking-tight">Katalog Produk</h3>
-            <button onclick="toggleCatalog()" class="p-3 bg-slate-100 rounded-full hover:bg-rose-500 hover:text-white transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </header>
-        <div class="p-6 bg-slate-50 border-b">
-            <input type="text" id="search-input" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-rose-500">
+        <div class="text-center mb-10">
+            <h1 class="text-2xl font-black tracking-tight uppercase">Sistem Terintegrasi ALI</h1>
+            <p class="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">Pilih Akses Anda</p>
         </div>
-        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-4 custom-scrollbar">
-            </div>
-    </div>
 
-    <div id="stok-view" class="fixed inset-0 z-[600] bg-white p-10 hidden">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="text-3xl font-black italic">DATABASE STOK</h2>
-            <button onclick="switchView('kasir')" class="px-8 py-3 ali-red text-white font-black rounded-xl shadow-lg">KEMBALI KE KASIR</button>
+        <div id="login-form" class="space-y-4">
+            <input type="text" id="user-in" placeholder="Username" 
+                class="w-full bg-slate-100 border-none rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500 font-bold">
+            
+            <input type="password" id="pass-in" placeholder="Password" 
+                class="w-full bg-slate-100 border-none rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500 font-bold">
+            
+            <button onclick="handleLogin()" id="btn-login" 
+                class="w-full ali-red text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/20 active:scale-95 transition-all mt-4">
+                MASUK KE DASHBOARD
+            </button>
         </div>
-        <div class="overflow-y-auto border border-slate-100 rounded-[2.5rem] h-[80%] shadow-sm">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50 sticky top-0">
-                    <tr class="text-xs font-black text-slate-400 uppercase tracking-widest border-b">
-                        <th class="p-6">Nama Produk</th>
-                        <th>Kategori</th>
-                        <th class="text-center">Stok</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="stok-table-body"></tbody>
-            </table>
-        </div>
-    </div>
 
-    <div id="print-receipt" class="font-mono text-[11px] text-black">
-        <center>
-            <h2 id="st-nama" style="font-size: 15px; font-weight: bold; margin-bottom: 2px;"></h2>
-            <p id="st-alamat" style="margin: 0;"></p>
-            <p id="st-telp" style="margin: 0;"></p>
-            <p style="margin: 5px 0;">================================</p>
-        </center>
-        <div id="print-items" style="margin: 10px 0; line-height: 1.3;"></div>
-        <p style="margin: 5px 0;">================================</p>
-        <div id="print-totals" style="font-weight: bold; line-height: 1.5;"></div>
-        <center>
-            <p id="st-footer" style="margin-top: 20px;"></p>
-            <p style="font-size: 8px; margin-top: 5px;">Powered by ALI POS System</p>
-        </center>
+        <p class="text-center text-[10px] text-slate-300 font-bold mt-10 tracking-widest uppercase">
+            &copy; 2026 ALI Retail & Tech
+        </p>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxNR5mVzxPpTODeCniAn0OF9fBrRokyjc4O8Fl3oIQcRIT4PKKfJe1GN8r1SnzBSJozVg/exec"; // GANTI DENGAN URL GAS ANDA
-        let products = [];
-        let cart = [];
-        let user = null;
-        let settings = {};
+        const API_URL = "URL_DEPLOY_API_ANDA"; // GANTI DENGAN URL GAS ANDA
 
-        // 1. LOGIN
-        async function doLogin() {
+        async function handleLogin() {
             const u = document.getElementById('user-in').value;
             const p = document.getElementById('pass-in').value;
-            if(!u || !p) return alert("Isi username & password!");
-            
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: u, password: p })});
-                const data = await res.json();
-                if (data.status === 'success') {
-                    user = data.user;
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
-                    document.getElementById('u-name').innerText = user.nama;
-                    document.getElementById('u-role').innerText = user.role;
-                    
-                    await fetchSettings();
-                    fetchData();
-                    document.getElementById('barcode-scan').focus();
-                } else alert("Username atau Password Salah!");
-            } catch (e) { alert("Koneksi Error!"); }
-        }
+            const btn = document.getElementById('btn-login');
 
-        // 2. AMBIL PENGATURAN DARI SHEET
-        async function fetchSettings() {
-            try {
-                const res = await fetch(`${API_URL}?action=getSettings`);
-                settings = await res.json();
-                // Terapkan ke elemen struk
-                document.getElementById('st-nama').innerText = settings.Nama_Toko || "ALI RETAIL";
-                document.getElementById('st-alamat').innerText = settings.Alamat_Toko || "";
-                document.getElementById('st-telp').innerText = settings.Telepon || "";
-                document.getElementById('st-footer').innerText = settings.Pesan_Kaki || "Terima Kasih";
-            } catch (e) { console.error("Gagal muat settings"); }
-        }
+            if(!u || !p) return alert("Harap isi username dan password!");
 
-        // 3. AMBIL DATA PRODUK
-        async function fetchData() {
-            try {
-                const res = await fetch(`${API_URL}?action=getProducts`);
-                products = await res.json();
-                renderCatalog(products);
-            } catch (e) { console.error("Gagal muat produk"); }
-        }
-
-        // 4. LOGIKA KATALOG & PENCARIAN
-        function toggleCatalog() {
-            const el = document.getElementById('catalog-popup');
-            el.classList.toggle('translate-x-full');
-            if(!el.classList.contains('translate-x-full')) {
-                document.getElementById('search-input').focus();
-            } else {
-                document.getElementById('barcode-scan').focus();
-            }
-        }
-
-        function renderCatalog(list) {
-            const grid = document.getElementById('catalog-grid');
-            grid.innerHTML = list.map(p => `
-                <div onclick="addToCart('${p.Barcode}')" class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-rose-500 cursor-pointer shadow-sm transition-all group active:scale-95">
-                    <p class="text-[8px] font-black text-slate-400 uppercase mb-1">${p.Satuan}</p>
-                    <h5 class="font-bold text-slate-800 text-xs mb-3 leading-tight h-8 overflow-hidden group-hover:ali-red-text">${p.Nama_Barang}</h5>
-                    <p class="font-black ali-red-text text-sm">Rp ${p.Harga_Jual.toLocaleString()}</p>
-                </div>
-            `).join('');
-        }
-
-        document.getElementById('search-input').oninput = (e) => {
-            const v = e.target.value.toLowerCase();
-            renderCatalog(products.filter(p => p.Nama_Barang.toLowerCase().includes(v)));
-        };
-
-        // 5. MANAJEMEN KERANJANG
-        function addToCart(bc) {
-            const p = products.find(x => x.Barcode == bc);
-            if (!p) return;
-            const exist = cart.find(c => c.Barcode == bc);
-            if (exist) {
-                exist.Qty++;
-            } else {
-                cart.push({...p, Qty: 1});
-            }
-            updateCartUI();
-            document.getElementById('barcode-scan').value = '';
-            document.getElementById('barcode-scan').focus();
-        }
-
-        function updateCartUI() {
-            const list = document.getElementById('cart-list');
-            let total = 0;
-            if (cart.length === 0) {
-                list.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-300 italic gap-4">Scan barcode atau cari di katalog...</div>`;
-            } else {
-                list.innerHTML = cart.map((item, i) => {
-                    total += item.Harga_Jual * item.Qty;
-                    return `
-                        <div class="cart-row text-sm font-bold text-slate-700 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <span class="flex flex-col"><span class="text-slate-900">${item.Nama_Barang}</span><span class="text-[9px] text-slate-400 uppercase tracking-tighter">${item.Barcode}</span></span>
-                            <span class="text-center text-slate-400 font-normal">Rp ${item.Harga_Jual.toLocaleString()}</span>
-                            <span class="text-center bg-slate-50 rounded-lg py-1">${item.Qty}</span>
-                            <span class="text-right ali-red-text">Rp ${(item.Qty * item.Harga_Jual).toLocaleString()}</span>
-                            <button onclick="removeFromCart(${i})" class="text-slate-300 hover:text-rose-600 font-bold text-lg transition-colors">×</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
-            calculateChange();
-        }
-
-        function calculateChange() {
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value || 0;
-            const change = cash - total;
-            document.getElementById('change-display').innerText = `Rp ${change >= 0 ? change.toLocaleString() : 0}`;
-        }
-        document.getElementById('cash-in').oninput = calculateChange;
-
-        // 6. PROSES TRANSAKSI & CETAK
-        async function processCheckout() {
-            const cash = document.getElementById('cash-in').value;
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            
-            if (cart.length === 0) return alert("Keranjang masih kosong!");
-            if (cash < total) return alert("Uang tunai tidak cukup!");
-
-            const btn = document.getElementById('btn-pay');
-            btn.innerText = "MENYIMPAN...";
+            btn.innerText = "VERIFIKASI...";
             btn.disabled = true;
 
             try {
-                // Simpan ke Spreadsheet
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'saveTransaction', admin: user.nama, cart: cart })
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'login', username: u, password: p }) 
                 });
-                
-                // ISI DATA KE STRUK SEBELUM CETAK
-                const printItems = document.getElementById('print-items');
-                printItems.innerHTML = cart.map(i => `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                        <div style="flex: 2;">${i.Nama_Barang}</div>
-                        <div style="flex: 0.5; text-align: center;">${i.Qty}x</div>
-                        <div style="flex: 1.5; text-align: right;">${(i.Qty * i.Harga_Jual).toLocaleString()}</div>
-                    </div>
-                `).join('');
+                const data = await res.json();
 
-                document.getElementById('print-totals').innerHTML = `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>TOTAL</span>
-                        <span>Rp ${total.toLocaleString()}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>TUNAI</span>
-                        <span>Rp ${parseInt(cash).toLocaleString()}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; border-top: 1px dashed black; margin-top: 5px; padding-top: 5px;">
-                        <span>KEMBALI</span>
-                        <span>Rp ${(cash - total).toLocaleString()}</span>
-                    </div>
-                `;
+                if (data.status === 'success') {
+                    const role = data.user.role.toLowerCase();
+                    
+                    // Simpan data user ke Session Storage (untuk sementara)
+                    sessionStorage.setItem('ali_user', JSON.stringify(data.user));
 
-                // Tampilkan printer dialog
-                window.print();
-
-                // Reset setelah sukses
-                cart = []; 
-                updateCartUI(); 
-                fetchData();
-                document.getElementById('cash-in').value = '';
-                document.getElementById('barcode-scan').focus();
+                    // LOGIKA PENGARAHAN (REDIRECT)
+                    if (role === 'owner') {
+                        window.location.href = "owner.html";
+                    } else if (role === 'admin') {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "kasir.html";
+                    }
+                } else {
+                    alert("Akses Ditolak! Cek kembali akun Anda.");
+                }
             } catch (e) {
-                alert("Gagal memproses transaksi!");
-            }
-            btn.innerText = "SELESAI & CETAK";
-            btn.disabled = false;
-        }
-
-        // 7. LAIN-LAIN
-        function switchView(v) {
-            const stokView = document.getElementById('stok-view');
-            if(v === 'stok') {
-                stokView.classList.remove('hidden');
-                const tb = document.getElementById('stok-table-body');
-                tb.innerHTML = products.map(p => `
-                    <tr class="border-b hover:bg-slate-50 transition-colors">
-                        <td class="p-6 font-bold text-slate-800">${p.Nama_Barang}</td>
-                        <td class="text-slate-400 font-bold">${p.Kategori}</td>
-                        <td class="text-center font-black">${p.Stok_Sekarang}</td>
-                        <td class="py-5"><span class="px-3 py-1 rounded-lg text-[10px] font-bold ${p.Stok_Sekarang <= p.Stok_Minimal ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}">${p.Stok_Sekarang <= p.Stok_Minimal ? 'STOK RENDAH' : 'AMAN'}</span></td>
-                    </tr>
-                `).join('');
-            } else {
-                stokView.classList.add('hidden');
+                alert("Gagal terhubung ke server!");
+            } finally {
+                btn.innerText = "MASUK KE DASHBOARD";
+                btn.disabled = false;
             }
         }
-
-        document.getElementById('barcode-scan').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') addToCart(e.target.value);
-        });
-
-        function removeFromCart(i) { cart.splice(i, 1); updateCartUI(); }
-        function clearCart() { if(confirm("Hapus semua barang di keranjang?")) { cart = []; updateCartUI(); } }
     </script>
 </body>
 </html>
