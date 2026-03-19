@@ -3,139 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI - Premium Retail POS</title>
+    <title>ALI - POS Premium Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .active-tab { background: #3b82f6 !important; color: white !important; }
-        @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 80mm; font-family: monospace; }
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(circle at top left, #1e293b, #0f172a); }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .cart-gradient { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); border-color: #3b82f6; }
+        @media print { .no-print { display: none; } #print-receipt { display: block !important; font-family: monospace; color: black; } }
     </style>
 </head>
-<body class="bg-[#0f172a] text-slate-200 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-100 h-screen overflow-hidden flex flex-col">
 
-    <div id="login-screen" class="fixed inset-0 bg-[#0f172a] z-[100] flex items-center justify-center">
-        <div class="bg-[#1e293b] w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-slate-800 text-center">
-            <h1 class="text-5xl font-black text-blue-500 mb-2 italic">ALI</h1>
-            <p class="text-slate-500 mb-8 font-medium uppercase tracking-[0.2em] text-xs">Retail Intelligent System</p>
-            <div class="space-y-4">
-                <input type="text" id="user-in" placeholder="Username" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl p-4 outline-none focus:border-blue-500 transition-all">
-                <input type="password" id="pass-in" placeholder="Password" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl p-4 outline-none focus:border-blue-500 transition-all">
-                <button onclick="doLogin()" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">LOGIN KE SISTEM</button>
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#0f172a]">
+        <div class="glass w-full max-w-md p-10 rounded-[3rem] text-center shadow-2xl">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-500/50">
+                <span class="text-4xl font-black italic">A</span>
             </div>
-            <p id="login-err" class="text-red-400 mt-4 text-sm hidden">Gagal masuk, cek kembali akun Anda.</p>
+            <h1 class="text-3xl font-extrabold mb-2">Selamat Datang</h1>
+            <p class="text-slate-400 mb-8 text-sm">Masuk ke sistem ALI Retail</p>
+            <div class="space-y-4">
+                <input type="text" id="user-in" placeholder="Username" class="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <input type="password" id="pass-in" placeholder="Password" class="w-full bg-slate-800/50 border border-slate-700 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <button onclick="doLogin()" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-600/30">BUKA DASHBOARD</button>
+            </div>
         </div>
     </div>
 
-    <div id="main-app" class="flex flex-1 overflow-hidden opacity-0">
-        <aside class="w-24 bg-[#1e293b] flex flex-col items-center py-8 gap-10 border-r border-slate-800">
-            <div class="text-2xl font-black text-blue-500 italic">A</div>
-            <nav class="flex flex-col gap-8">
-                <button onclick="switchMenu('kasir')" id="nav-kasir" class="p-4 rounded-2xl text-slate-500 active-tab transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+    <div id="main-app" class="flex flex-1 overflow-hidden opacity-0 transition-opacity duration-700">
+        
+        <aside class="w-24 flex flex-col items-center py-8 gap-10 border-r border-white/5 no-print">
+            <div class="text-2xl font-black text-blue-500 italic mb-4">ALI</div>
+            <nav class="flex flex-col gap-6">
+                <button onclick="switchTab('kasir')" class="p-4 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/40" id="nav-kasir">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </button>
-                <button onclick="switchMenu('stok')" id="nav-stok" class="p-4 rounded-2xl text-slate-500 hidden transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <button onclick="switchTab('stok')" class="p-4 rounded-2xl text-slate-500 hover:bg-slate-800 transition-all hidden" id="nav-stok">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 </button>
             </nav>
-            <button onclick="location.reload()" class="mt-auto p-4 text-red-500 hover:bg-red-500/10 rounded-2xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+            <button onclick="location.reload()" class="mt-auto p-4 text-red-400 hover:bg-red-500/10 rounded-2xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
             </button>
         </aside>
 
-        <main class="flex-1 flex flex-col p-10 overflow-hidden">
-            <header class="flex justify-between items-center mb-10">
+        <main class="flex-1 flex flex-col p-8 overflow-hidden no-print">
+            <header class="flex justify-between items-end mb-8">
                 <div>
-                    <h2 id="title-text" class="text-4xl font-extrabold">Menu Kasir</h2>
-                    <p class="text-slate-500 uppercase tracking-widest text-xs mt-1"><span id="u-name">-</span> | <span id="u-role">-</span></p>
+                    <h2 id="view-title" class="text-4xl font-black tracking-tight">Kasir Utama</h2>
+                    <p class="text-slate-500 font-bold text-xs mt-1 uppercase tracking-widest"><span id="u-name">-</span> | <span id="u-role">-</span></p>
                 </div>
-                <div id="search-container" class="w-1/3">
-                    <input type="text" id="search-in" placeholder="Scan Barcode / Cari Merk..." class="w-full bg-[#1e293b] border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-blue-500 outline-none text-white shadow-2xl">
+                <div class="w-1/2 relative" id="search-box">
+                    <span class="absolute inset-y-0 left-4 flex items-center text-slate-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" id="main-search" placeholder="Scan Barcode / Cari Merk Produk..." class="w-full bg-slate-800/40 border border-slate-700 rounded-3xl py-4 pl-12 pr-6 outline-none focus:ring-2 focus:ring-blue-500 shadow-xl">
                 </div>
             </header>
 
-            <div id="view-kasir" class="flex gap-10 flex-1 overflow-hidden">
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-4">
-                    <div id="p-grid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-                </div>
-
-                <div class="w-96 bg-[#1e293b] rounded-[3rem] p-10 flex flex-col shadow-2xl border border-slate-800">
-                    <h3 class="font-bold text-xl mb-6">Keranjang Belanja</h3>
-                    <div id="cart-box" class="flex-1 overflow-y-auto custom-scrollbar space-y-4 mb-6"></div>
-                    <div class="space-y-4 border-t border-slate-700 pt-8">
-                        <div class="flex justify-between items-end">
-                            <span class="text-slate-500 font-semibold">TOTAL</span>
-                            <span id="t-price" class="text-4xl font-black text-blue-500">Rp 0</span>
-                        </div>
-                        <input type="number" id="cash-in" placeholder="Tunai (Rp)" class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl py-5 text-center text-3xl font-black text-green-400 focus:border-green-500 outline-none">
-                        <button onclick="checkout()" id="btn-pay" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-[1.5rem] text-xl transition-all shadow-lg active:scale-95">PROSES BAYAR</button>
-                    </div>
-                </div>
+            <div id="content-kasir" class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div id="p-grid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10"></div>
             </div>
 
-            <div id="view-stok" class="hidden flex-1 overflow-y-auto bg-[#1e293b] rounded-[2rem] p-8 border border-slate-800">
-                <table class="w-full text-left border-separate border-spacing-y-3">
-                    <thead class="text-slate-500 text-xs uppercase tracking-tighter">
-                        <tr><th class="px-6 pb-4">Produk</th><th class="pb-4">Kategori</th><th class="text-center pb-4">Stok</th><th class="pb-4">Status</th></tr>
-                    </thead>
-                    <tbody id="s-table"></tbody>
-                </table>
+            <div id="content-stok" class="hidden flex-1 overflow-y-auto custom-scrollbar">
+                <div class="glass rounded-[2rem] p-8">
+                    <table class="w-full text-left">
+                        <thead class="text-slate-500 text-[10px] uppercase font-bold border-b border-white/5">
+                            <tr><th class="pb-4">Nama Barang</th><th class="pb-4">Kategori</th><th class="pb-4 text-center">Stok</th><th class="pb-4">Status</th></tr>
+                        </thead>
+                        <tbody id="s-table" class="text-sm"></tbody>
+                    </table>
+                </div>
             </div>
         </main>
+
+        <aside class="w-[450px] bg-slate-900 border-l border-white/5 flex flex-col p-8 no-print shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-extrabold italic">Keranjang</h3>
+                <span id="item-count" class="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">0 Item</span>
+            </div>
+
+            <div id="cart-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-4 mb-8">
+                <div class="text-center text-slate-600 mt-20 italic">Belum ada barang dipilih...</div>
+            </div>
+
+            <div class="glass rounded-3xl p-6 space-y-6 shadow-xl border-t-4 border-t-blue-500">
+                <div class="flex justify-between items-end">
+                    <span class="text-slate-400 font-bold text-sm uppercase">Total Tagihan</span>
+                    <span id="grand-total" class="text-4xl font-black text-white">Rp 0</span>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Uang Pembayaran (F12)</label>
+                    <input type="number" id="cash-in" placeholder="0" class="w-full bg-slate-950 border border-slate-700 rounded-2xl py-6 text-center text-4xl font-black text-green-400 outline-none focus:border-green-500 shadow-inner">
+                </div>
+                <button onclick="processPay()" id="btn-pay" class="w-full cart-gradient hover:opacity-90 text-white font-black py-6 rounded-[2rem] text-xl shadow-lg transition-all active:scale-95">SELESAI & CETAK STRUK</button>
+            </div>
+        </aside>
     </div>
 
-    <div id="print-area" class="hidden text-black p-4">
+    <div id="print-receipt" class="hidden p-4 bg-white text-black text-xs">
         <center>
-            <h2 style="font-size: 20px; font-weight: bold;">TOKO ALI</h2>
-            <p>Bitung, Sulawesi Utara</p>
+            <h2 class="font-bold text-lg">TOKO ALI</h2>
+            <p>Bitung - North Sulawesi</p>
             <p>--------------------------------</p>
         </center>
-        <div id="struk-items"></div>
+        <div id="print-items"></div>
         <p>--------------------------------</p>
-        <div id="struk-total" style="font-weight: bold;"></div>
-        <center><p style="margin-top: 20px;">Terima Kasih</p></center>
+        <div id="print-totals" class="font-bold"></div>
+        <center><p class="mt-4">Terima Kasih Atas Kunjungan Anda</p></center>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbysOUMTXh2imnpShK0O6Kq0OSHYaADy6SnqLNYpXbhsxDo2cIIzGChSPX9QP81rk2bWWQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzxSc84uCRGNyC5cMJiu6KEenG_3h1KTPWoDTNy2ERb-eyr6xwyPv00z10hw4ENqvk--Q/exec";
         let user = null;
         let products = [];
         let cart = [];
 
         async function doLogin() {
-            const username = document.getElementById('user-in').value;
-            const password = document.getElementById('pass-in').value;
+            const userIn = document.getElementById('user-in').value;
+            const passIn = document.getElementById('pass-in').value;
             const btn = document.getElementById('btn-login');
-            btn.innerText = "LOADING...";
+            btn.innerText = "MENYAMBUNGKAN...";
             
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'login', username, password })
+                    body: JSON.stringify({ action: 'login', username: userIn, password: passIn })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
                     user = data.user;
-                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
                     document.getElementById('u-name').innerText = user.nama;
                     document.getElementById('u-role').innerText = user.role;
                     if (user.role !== 'Kasir') document.getElementById('nav-stok').classList.remove('hidden');
-                    loadData();
-                } else {
-                    alert(data.message);
-                }
-            } catch (e) { alert("Cek Koneksi Internet!"); }
-            btn.innerText = "LOGIN KE SISTEM";
+                    fetchP();
+                } else { alert(data.message); }
+            } catch (e) { alert("Server tidak merespon!"); }
+            btn.innerText = "BUKA DASHBOARD";
         }
 
-        async function loadData() {
+        async function fetchP() {
             const res = await fetch(`${API_URL}?action=getProducts`);
             products = await res.json();
             renderP(products);
@@ -144,84 +156,93 @@
         function renderP(list) {
             const grid = document.getElementById('p-grid');
             grid.innerHTML = list.map(p => `
-                <div onclick="add('${p.Barcode}')" class="bg-[#1e293b] p-6 rounded-[2rem] border border-slate-800 cursor-pointer hover:border-blue-500 transition-all hover:-translate-y-2">
-                    <div class="text-[10px] text-blue-400 font-bold uppercase mb-2">${p.Satuan}</div>
-                    <div class="font-bold text-white mb-4 h-12 overflow-hidden leading-tight">${p.Nama_Barang}</div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-green-400 font-extrabold text-lg">Rp ${p.Harga_Jual.toLocaleString()}</span>
-                        <span class="text-[10px] text-slate-500">Stok: ${p.Stok_Sekarang}</span>
+                <div onclick="addToCart('${p.Barcode}')" class="product-card glass p-6 rounded-[2.5rem] cursor-pointer transition-all border-white/5 border relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
+                        <div class="bg-blue-600 rounded-full p-2"><svg class="w-4 h-4" fill="white" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg></div>
+                    </div>
+                    <p class="text-[10px] font-bold text-blue-400 mb-1">${p.Satuan}</p>
+                    <h4 class="font-bold text-white mb-6 leading-snug h-12 overflow-hidden">${p.Nama_Barang}</h4>
+                    <div class="flex justify-between items-end">
+                        <span class="text-xl font-black text-green-400">Rp ${p.Harga_Jual.toLocaleString()}</span>
+                        <span class="text-[9px] text-slate-500 font-bold uppercase">Stok: ${p.Stok_Sekarang}</span>
                     </div>
                 </div>
             `).join('');
         }
 
-        function add(bc) {
-            const p = products.find(i => i.Barcode == bc);
+        function addToCart(bc) {
+            const p = products.find(x => x.Barcode == bc);
             const exist = cart.find(c => c.Barcode == bc);
             if (exist) exist.Qty++; else cart.push({...p, Qty: 1});
             updateUI();
         }
 
         function updateUI() {
-            const box = document.getElementById('cart-box');
+            const list = document.getElementById('cart-list');
             let total = 0;
-            box.innerHTML = cart.map(item => {
-                total += item.Harga_Jual * item.Qty;
-                return `
-                    <div class="bg-[#0f172a] p-4 rounded-2xl flex justify-between">
-                        <div><p class="font-bold text-sm">${item.Nama_Barang}</p><p class="text-xs text-slate-500">${item.Qty} x ${item.Harga_Jual.toLocaleString()}</p></div>
-                        <div class="font-bold text-blue-400">Rp ${(item.Qty * item.Harga_Jual).toLocaleString()}</div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('t-price').innerText = `Rp ${total.toLocaleString()}`;
+            if (cart.length === 0) {
+                list.innerHTML = '<div class="text-center text-slate-600 mt-20 italic">Belum ada barang...</div>';
+            } else {
+                list.innerHTML = cart.map(item => {
+                    total += item.Harga_Jual * item.Qty;
+                    return `
+                        <div class="flex items-center gap-4 bg-slate-800/60 p-5 rounded-[2rem] border border-white/5">
+                            <div class="bg-blue-600/20 text-blue-400 font-bold w-10 h-10 rounded-xl flex items-center justify-center">${item.Qty}</div>
+                            <div class="flex-1">
+                                <h5 class="font-bold text-sm text-white">${item.Nama_Barang}</h5>
+                                <p class="text-xs text-slate-500">Rp ${item.Harga_Jual.toLocaleString()}</p>
+                            </div>
+                            <div class="text-right font-black text-blue-400">Rp ${(item.Qty * item.Harga_Jual).toLocaleString()}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            document.getElementById('grand-total').innerText = `Rp ${total.toLocaleString()}`;
+            document.getElementById('item-count').innerText = `${cart.length} Jenis Barang`;
         }
 
-        async function checkout() {
-            if (cart.length === 0) return;
+        async function processPay() {
             const cash = document.getElementById('cash-in').value;
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            if (cash < total) return alert("Uang kurang!");
+            if (cart.length === 0 || cash < total) return alert("Periksa keranjang atau nominal uang!");
 
-            document.getElementById('btn-pay').innerText = "MENYIMPAN...";
+            const btn = document.getElementById('btn-pay');
+            btn.innerText = "SEDANG MEMPROSES...";
+            
             try {
                 await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'saveTransaction', admin: user.nama, cart: cart })
                 });
                 alert("Berhasil! Kembalian: Rp " + (cash - total).toLocaleString());
-                printStruk(total, cash);
-                cart = [];
-                updateUI();
-                loadData();
+                
+                // Cetak Struk
+                document.getElementById('print-items').innerHTML = cart.map(i => `<p>${i.Nama_Barang} x${i.Qty} <span style="float:right">Rp ${(i.Qty*i.Harga_Jual).toLocaleString()}</span></p>`).join('');
+                document.getElementById('print-totals').innerHTML = `<br>TOTAL: Rp ${total.toLocaleString()}<br>BAYAR: Rp ${parseInt(cash).toLocaleString()}<br>KEMBALI: Rp ${(cash-total).toLocaleString()}`;
+                window.print();
+
+                cart = []; updateUI(); fetchP();
                 document.getElementById('cash-in').value = '';
-            } catch (e) { alert("Gagal Simpan!"); }
-            document.getElementById('btn-pay').innerText = "PROSES BAYAR";
+            } catch (e) { alert("Gagal Simpan Data!"); }
+            btn.innerText = "SELESAI & CETAK STRUK";
         }
 
-        function printStruk(total, cash) {
-            const itemBox = document.getElementById('struk-items');
-            itemBox.innerHTML = cart.map(i => `<p>${i.Nama_Barang} x${i.Qty} <span style="float:right">Rp ${(i.Qty*i.Harga_Jual).toLocaleString()}</span></p>`).join('');
-            document.getElementById('struk-total').innerHTML = `TOTAL: Rp ${total.toLocaleString()}<br>BAYAR: Rp ${parseInt(cash).toLocaleString()}<br>KEMBALI: Rp ${(cash-total).toLocaleString()}`;
-            window.print();
-        }
+        function switchTab(tab) {
+            document.getElementById('content-kasir').classList.add('hidden');
+            document.getElementById('content-stok').classList.add('hidden');
+            document.getElementById('search-box').classList.add('hidden');
+            document.getElementById('nav-kasir').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('nav-stok').classList.remove('bg-blue-600', 'text-white');
 
-        function switchMenu(m) {
-            document.getElementById('view-kasir').classList.add('hidden');
-            document.getElementById('view-stok').classList.add('hidden');
-            document.getElementById('search-container').classList.add('hidden');
-            document.getElementById('nav-kasir').classList.remove('active-tab');
-            document.getElementById('nav-stok').classList.remove('active-tab');
-
-            if (m === 'kasir') {
-                document.getElementById('view-kasir').classList.remove('hidden');
-                document.getElementById('search-container').classList.remove('hidden');
-                document.getElementById('nav-kasir').classList.add('active-tab');
-                document.getElementById('title-text').innerText = "Menu Kasir";
+            if (tab === 'kasir') {
+                document.getElementById('content-kasir').classList.remove('hidden');
+                document.getElementById('search-box').classList.remove('hidden');
+                document.getElementById('nav-kasir').classList.add('bg-blue-600', 'text-white');
+                document.getElementById('view-title').innerText = "Kasir Utama";
             } else {
-                document.getElementById('view-stok').classList.remove('hidden');
-                document.getElementById('nav-stok').classList.add('active-tab');
-                document.getElementById('title-text').innerText = "Manajemen Stok";
+                document.getElementById('content-stok').classList.remove('hidden');
+                document.getElementById('nav-stok').classList.add('bg-blue-600', 'text-white');
+                document.getElementById('view-title').innerText = "Kontrol Stok";
                 renderS();
             }
         }
@@ -229,12 +250,12 @@
         function renderS() {
             const tb = document.getElementById('s-table');
             tb.innerHTML = products.map(p => `
-                <tr class="bg-[#263246] text-sm overflow-hidden rounded-2xl">
-                    <td class="px-6 py-4 rounded-l-2xl font-bold">${p.Nama_Barang}</td>
-                    <td class="py-4 text-slate-400">${p.Kategori}</td>
-                    <td class="py-4 text-center font-black">${p.Stok_Sekarang}</td>
-                    <td class="py-4 rounded-r-2xl">
-                        <span class="px-3 py-1 rounded-lg text-[10px] font-bold ${p.Stok_Sekarang <= p.Stok_Minimal ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}">
+                <tr class="border-b border-white/5">
+                    <td class="py-5 font-bold">${p.Nama_Barang}</td>
+                    <td class="py-5 text-slate-500">${p.Kategori}</td>
+                    <td class="py-5 text-center font-black">${p.Stok_Sekarang}</td>
+                    <td class="py-5">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-bold ${p.Stok_Sekarang <= p.Stok_Minimal ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}">
                             ${p.Stok_Sekarang <= p.Stok_Minimal ? 'RE-STOCK' : 'AMAN'}
                         </span>
                     </td>
@@ -242,7 +263,7 @@
             `).join('');
         }
 
-        document.getElementById('search-in').oninput = (e) => {
+        document.getElementById('main-search').oninput = (e) => {
             const v = e.target.value.toLowerCase();
             renderP(products.filter(p => p.Nama_Barang.toLowerCase().includes(v) || p.Barcode.toString().includes(v)));
         };
