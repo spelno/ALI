@@ -1,67 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>ALI Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI System - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; }
+        .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
     </style>
 </head>
 <body class="h-screen flex items-center justify-center p-6">
 
-    <div class="bg-white w-full max-w-sm p-10 rounded-[2.5rem] shadow-2xl">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-rose-500 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-3xl font-black italic shadow-lg shadow-rose-500/30">A</div>
-            <h1 class="text-xl font-extrabold tracking-tighter uppercase">Integrated System</h1>
-            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Silakan Login ke Akun Anda</p>
+    <div class="bg-white w-full max-w-sm p-10 rounded-[2.5rem] shadow-2xl scale-100 hover:scale-[1.02] transition-transform duration-500">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 ali-gradient rounded-[2rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase text-slate-800">Integrated <span class="text-rose-500">System</span></h1>
+            <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Login to Your Dashboard</p>
         </div>
 
         <div class="space-y-4">
-            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-100 border-none rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500 font-bold">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-100 border-none rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500 font-bold">
-            <button onclick="doLogin()" id="btnLogin" class="w-full bg-rose-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-rose-600/20 active:scale-95 transition-all">MASUK DASHBOARD</button>
+            <div class="group">
+                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Username</label>
+                <input type="text" id="username" placeholder="Masukkan username..." 
+                    class="w-full bg-slate-50 border-2 border-transparent rounded-2xl p-4 outline-none focus:border-rose-500/20 focus:bg-white font-bold transition-all text-slate-700">
+            </div>
+            
+            <div class="group">
+                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Password</label>
+                <input type="password" id="password" placeholder="••••••••" 
+                    class="w-full bg-slate-50 border-2 border-transparent rounded-2xl p-4 outline-none focus:border-rose-500/20 focus:bg-white font-bold transition-all text-slate-700">
+            </div>
+
+            <button onclick="handleLogin()" id="btnLogin" 
+                class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase tracking-widest text-sm">
+                Masuk Dashboard
+            </button>
         </div>
+
+        <p class="text-center text-[9px] text-slate-300 font-bold uppercase tracking-widest mt-10">© 2026 Professional ALI POS</p>
     </div>
 
     <script>
-        // MASUKKAN URL WEB APP ANDA DISINI (URL yang didapat setelah Deploy)
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzrV9DNZGgrLFQl9U-wjGjqVyatSYlbVQXY3Bj9koXuNHWtDgEsxrns4bQ9h0RRXE420w/exec"; 
+        // PENTING: Masukkan URL Deployment Apps Script Anda (yang berakhir /exec)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxF8kn_Rsj5TtJOcyKnis8iAXYOC5JOcvNfgu2f3-VZaaDfgMrQAitg280ZR5GJgJh65g/exec";
 
-        async function doLogin() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
             const btn = document.getElementById('btnLogin');
 
-            if(!u || !p) return alert("Isi data!");
-            
-            btn.innerText = "VERIFIKASI...";
+            if(!u || !p) {
+                alert("Mohon isi semua bidang!");
+                return;
+            }
+
+            btn.innerText = "VERIFIKASI DATA...";
             btn.disabled = true;
 
             try {
-                // Panggil fungsi doPost di Code.gs
-                google.script.run.withSuccessHandler(function(res) {
-                    const data = JSON.parse(res);
-                    if(data.status === "success") {
-                        const role = data.user.role.toLowerCase().trim();
-                        sessionStorage.setItem('ali_user', JSON.stringify(data.user));
-                        
-                        // REDIRECT BERDASARKAN ROLE
-                        // Sistem akan memanggil kembali doGet dengan parameter ?page=
-                        window.top.location.href = WEB_APP_URL + "?page=" + role;
-                    } else {
-                        alert("Gagal! Cek Username/Password.");
-                        btn.innerText = "MASUK DASHBOARD";
-                        btn.disabled = false;
-                    }
-                }).doPostJSON(JSON.stringify({ action: "login", username: u, password: p }));
-            } catch(e) {
-                alert("Error koneksi!");
-                btn.innerText = "MASUK DASHBOARD";
-                btn.disabled = false;
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "login",
+                        username: u,
+                        password: p
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    // Simpan identitas user ke Session Storage browser
+                    sessionStorage.setItem('ali_user', JSON.stringify(result.user));
+                    
+                    // Navigasi otomatis ke file HTML berdasarkan Role
+                    // Contoh: role 'admin' akan membuka 'admin.html' di GitHub
+                    const targetPage = result.user.role + ".html";
+                    window.location.href = targetPage;
+                } else {
+                    alert("Akses Ditolak: " + result.message);
+                    resetButton(btn);
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert("Gagal terhubung ke API. Pastikan URL API benar.");
+                resetButton(btn);
             }
         }
+
+        function resetButton(btn) {
+            btn.innerText = "MASUK DASHBOARD";
+            btn.disabled = false;
+        }
+
+        // Fitur Enter untuk Login
+        document.onkeydown = function(e) {
+            if (e.key === "Enter") handleLogin();
+        };
     </script>
 </body>
 </html>
