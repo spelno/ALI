@@ -13,18 +13,32 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         #catalog-popup { transition: 0.4s ease; z-index: 1000; }
-        @media print { body > *:not(#print-receipt) { display: none; } #print-receipt { display: block; } }
-        #print-receipt { display: none; font-family: monospace; }
+
+        /* CSS KHUSUS CETAK STRUK */
+        @media print {
+            body > *:not(#print-receipt) { display: none !important; }
+            #print-receipt { 
+                display: block !important; 
+                width: 58mm; /* Standar printer thermal */
+                margin: 0;
+                padding: 5px;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 10px;
+                color: black;
+            }
+            @page { margin: 0; }
+        }
+        #print-receipt { display: none; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
     <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-6 shadow-sm">
         <div class="text-xl font-black ali-red-text italic">ALI</div>
-        <button onclick="toggleCatalog()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all">
+        <button onclick="toggleCatalog()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all" title="Katalog">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
-        <button onclick="window.location.href='admin.html'" class="p-4 rounded-2xl bg-slate-50 text-slate-500 hover:bg-rose-500 hover:text-white transition-all">
+        <button onclick="window.location.href='admin.html'" class="p-4 rounded-2xl bg-slate-50 text-slate-500 hover:bg-rose-500 hover:text-white transition-all" title="Admin">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
         </button>
         <button onclick="logout()" class="mt-auto p-4 text-slate-300 hover:text-rose-600">
@@ -38,14 +52,14 @@
                 <h2 class="text-3xl font-black text-slate-800 italic">KERANJANG BELANJA</h2>
                 <p class="text-slate-400 font-bold text-xs uppercase tracking-widest"><span id="u-name">-</span> | <span id="u-role">-</span></p>
             </div>
-            <button onclick="clearCart()" class="text-xs font-bold text-slate-400 hover:text-rose-600 uppercase">Kosongkan</button>
+            <button onclick="clearCart()" class="text-xs font-bold text-slate-400 hover:text-rose-600 uppercase">Kosongkan List</button>
         </header>
 
         <div class="flex-1 bg-white rounded-[2rem] border shadow-sm overflow-hidden flex flex-col">
             <div id="cart-list" class="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 </div>
             <div class="p-6 bg-slate-50 border-t">
-                <input type="text" id="barcode-scan" autofocus placeholder="SCAN BARCODE DISINI..." class="w-full bg-white border-2 rounded-2xl py-5 px-8 text-2xl font-black ali-red-text focus:border-rose-500 outline-none uppercase tracking-widest shadow-inner">
+                <input type="text" id="barcode-scan" autofocus placeholder="SCAN BARCODE..." class="w-full bg-white border-2 rounded-2xl py-5 px-8 text-2xl font-black ali-red-text focus:border-rose-500 outline-none uppercase tracking-widest shadow-inner">
             </div>
         </div>
     </main>
@@ -58,31 +72,45 @@
 
         <div class="space-y-6 flex-1">
             <div class="bg-slate-50 p-6 rounded-3xl border">
-                <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Tunai (Rp)</label>
+                <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Uang Tunai (Rp)</label>
                 <input type="number" id="cash-in" oninput="calculateChange()" class="w-full bg-transparent text-3xl font-black outline-none border-b-2 border-slate-200 focus:border-rose-500 mb-4">
                 <div class="flex justify-between items-center text-emerald-600 font-bold">
                     <span class="text-[10px] uppercase">Kembali</span>
                     <span id="change-display" class="text-xl font-black">Rp 0</span>
                 </div>
             </div>
-            <button onclick="processCheckout()" id="btn-pay" class="w-full ali-red hover:bg-rose-700 text-white font-black py-6 rounded-3xl text-xl shadow-xl transition-all active:scale-95">SELESAI & CETAK</button>
+            <button onclick="handleTransaction()" id="btn-pay" class="w-full ali-red hover:bg-rose-700 text-white font-black py-6 rounded-3xl text-xl shadow-xl transition-all active:scale-95">SELESAI & CETAK</button>
         </div>
     </aside>
 
     <div id="catalog-popup" class="fixed top-0 right-0 w-[500px] h-full bg-white shadow-2xl translate-x-full flex flex-col">
         <div class="p-8 border-b flex justify-between items-center bg-slate-50">
             <h3 class="font-black uppercase italic">Katalog Produk</h3>
-            <button onclick="toggleCatalog()" class="text-slate-400 hover:text-rose-600">✕</button>
+            <button onclick="toggleCatalog()" class="text-slate-400">✕</button>
         </div>
         <div class="p-4 border-b">
-            <input type="text" id="search-input" oninput="filterCatalog()" placeholder="Cari nama barang..." class="w-full p-3 rounded-xl border outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="text" id="search-input" oninput="filterCatalog()" placeholder="Cari barang..." class="w-full p-3 rounded-xl border outline-none focus:ring-2 focus:ring-rose-500">
         </div>
-        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-4 custom-scrollbar">
-            </div>
+        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-4 custom-scrollbar"></div>
+    </div>
+
+    <div id="print-receipt">
+        <center>
+            <h3 id="p-toko-nama" style="margin:0;">-</h3>
+            <p id="p-toko-alamat" style="margin:0; font-size:9px;"></p>
+            <p style="margin:5px 0;">--------------------------------</p>
+        </center>
+        <div id="p-items"></div>
+        <p style="margin:5px 0;">--------------------------------</p>
+        <div id="p-totals"></div>
+        <center>
+            <p style="margin:10px 0 0 0;" id="p-footer"></p>
+            <p style="font-size:8px;">Terima Kasih</p>
+        </center>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzpgV1UNRgD-w1asu5dR8VjQt9GMuoPrZIaCO-VCqwBXDFOCPIc_YjUIjB5f5tZB5HrDA/exec"; // <--- GANTI INI
+        const API_URL = "https://script.google.com/macros/s/AKfycbzpgV1UNRgD-w1asu5dR8VjQt9GMuoPrZIaCO-VCqwBXDFOCPIc_YjUIjB5f5tZB5HrDA/exec"; // GANTI DENGAN URL WEB APP ANDA
         let products = [], cart = [];
         const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
 
@@ -93,42 +121,87 @@
         window.onload = () => { fetchData(); fetchSettings(); };
 
         async function fetchData() {
-            try {
-                const res = await fetch(`${API_URL}?action=getProducts`);
-                products = await res.json();
-                renderCatalog(products);
-            } catch(e) { console.log("Gagal muat produk"); }
+            const res = await fetch(`${API_URL}?action=getProducts`);
+            products = await res.json();
+            renderCatalog(products);
         }
 
         async function fetchSettings() {
-            try {
-                const res = await fetch(`${API_URL}?action=getSettings`);
-                const s = await res.json();
-                window.tokoSettings = s;
-            } catch(e) {}
+            const res = await fetch(`${API_URL}?action=getSettings`);
+            const s = await res.json();
+            window.tokoSettings = s;
+            document.getElementById('p-toko-nama').innerText = s.Nama_Toko || "ALI POS";
+            document.getElementById('p-toko-alamat').innerText = s.Alamat_Toko || "";
+            document.getElementById('p-footer').innerText = s.Pesan_Kaki || "";
         }
 
-        function toggleCatalog() {
-            document.getElementById('catalog-popup').classList.toggle('translate-x-full');
-            document.getElementById('search-input').focus();
+        // ALUR BARU: CETAK DULU -> SIMPAN
+        async function handleTransaction() {
+            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            const cash = document.getElementById('cash-in').value;
+            
+            if (cart.length === 0) return alert("Keranjang masih kosong!");
+            if (!cash || cash < total) return alert("Uang tunai kurang!");
+
+            // 1. Siapkan data di Struk Tersembunyi
+            prepareReceipt(total, cash);
+
+            // 2. Munculkan Menu Cetak
+            window.print();
+
+            // 3. Setelah menu cetak ditutup (User klik Print/Cancel), baru simpan ke Sheets
+            const confirmSave = confirm("Struk sudah dicetak? Klik OK untuk simpan transaksi ke database.");
+            if (confirmSave) {
+                saveToSheets();
+            }
         }
 
-        function renderCatalog(list) {
-            const grid = document.getElementById('catalog-grid');
-            grid.innerHTML = list.map(p => `
-                <div onclick="addToCart('${p.Barcode}')" class="bg-slate-50 p-4 rounded-2xl border hover:border-rose-500 cursor-pointer transition-all active:scale-95 group">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">${p.Satuan || ''}</p>
-                    <h5 class="font-bold text-xs mb-2 h-8 overflow-hidden group-hover:text-rose-600">${p.Nama_Barang}</h5>
-                    <p class="font-black ali-red-text">Rp ${Number(p.Harga_Jual).toLocaleString('id-ID')}</p>
+        function prepareReceipt(total, cash) {
+            const itemHtml = cart.map(i => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                    <span>${i.Nama_Barang} x${i.Qty}</span>
+                    <span>${(i.Qty * i.Harga_Jual).toLocaleString()}</span>
                 </div>
             `).join('');
+            
+            document.getElementById('p-items').innerHTML = itemHtml;
+            document.getElementById('p-totals').innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>TOTAL</span><span>Rp ${total.toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>TUNAI</span><span>Rp ${Number(cash).toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>KEMBALI</span><span>Rp ${(cash - total).toLocaleString()}</span>
+                </div>
+            `;
         }
 
-        function filterCatalog() {
-            const q = document.getElementById('search-input').value.toLowerCase();
-            renderCatalog(products.filter(p => p.Nama_Barang.toLowerCase().includes(q)));
+        async function saveToSheets() {
+            const btn = document.getElementById('btn-pay');
+            btn.innerText = "MENYIMPAN...";
+            btn.disabled = true;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveTransaction', admin: session.nama, cart: cart })
+                });
+                alert("Transaksi Berhasil Disimpan!");
+                cart = []; 
+                updateUI(); 
+                document.getElementById('cash-in').value = '';
+                fetchData(); // Update stok di katalog
+            } catch(e) {
+                alert("Gagal menyimpan ke database, silakan cek koneksi.");
+            }
+            btn.innerText = "SELESAI & CETAK";
+            btn.disabled = false;
         }
 
+        // FUNGSI PENDUKUNG LAINNYA
+        function toggleCatalog() { document.getElementById('catalog-popup').classList.toggle('translate-x-full'); }
         function addToCart(bc) {
             const p = products.find(x => x.Barcode == bc);
             if (!p) return;
@@ -136,53 +209,42 @@
             if (exist) exist.Qty++; else cart.push({...p, Qty: 1});
             updateUI();
             document.getElementById('barcode-scan').value = '';
+            document.getElementById('barcode-scan').focus();
         }
-
         function updateUI() {
             const list = document.getElementById('cart-list');
             let total = 0;
             list.innerHTML = cart.map((item, i) => {
                 const sub = item.Harga_Jual * item.Qty;
                 total += sub;
-                return `
-                <div class="flex items-center justify-between py-4 border-b">
-                    <div class="flex-1"><p class="font-bold text-slate-800">${item.Nama_Barang}</p><p class="text-[10px] text-slate-400">${item.Barcode}</p></div>
-                    <div class="w-24 text-center text-sm">Rp ${Number(item.Harga_Jual).toLocaleString('id-ID')}</div>
-                    <div class="w-16 text-center font-bold">x${item.Qty}</div>
-                    <div class="w-28 text-right font-black ali-red-text">Rp ${sub.toLocaleString('id-ID')}</div>
-                    <button onclick="removeFromCart(${i})" class="ml-4 text-slate-300 hover:text-rose-600 text-xl">×</button>
+                return `<div class="flex justify-between py-4 border-b items-center">
+                    <div class="flex-1"><p class="font-bold">${item.Nama_Barang}</p><p class="text-[10px] text-slate-400">${item.Barcode}</p></div>
+                    <div class="w-20 text-center">${item.Qty}x</div>
+                    <div class="w-28 text-right font-black ali-red-text">Rp ${sub.toLocaleString()}</div>
                 </div>`;
             }).join('');
-            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-            calculateChange();
+            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
         }
-
         function calculateChange() {
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
             const cash = document.getElementById('cash-in').value || 0;
-            const change = cash - total;
-            document.getElementById('change-display').innerText = `Rp ${change >= 0 ? change.toLocaleString('id-ID') : 0}`;
+            document.getElementById('change-display').innerText = `Rp ${(cash - total > 0 ? cash - total : 0).toLocaleString()}`;
         }
-
-        async function processCheckout() {
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value;
-            if (cart.length === 0 || cash < total) return alert("Periksa belanjaan/uang!");
-
-            document.getElementById('btn-pay').innerText = "PROSES...";
-            try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaction', admin: session.nama, cart: cart }) });
-                alert("Transaksi Berhasil!");
-                cart = []; updateUI(); document.getElementById('cash-in').value = '';
-                fetchData(); // Refresh stok
-            } catch(e) { alert("Gagal Simpan"); }
-            document.getElementById('btn-pay').innerText = "SELESAI & CETAK";
+        function filterCatalog() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            renderCatalog(products.filter(p => p.Nama_Barang.toLowerCase().includes(q)));
         }
-
+        function renderCatalog(list) {
+            document.getElementById('catalog-grid').innerHTML = list.map(p => `
+                <div onclick="addToCart('${p.Barcode}')" class="bg-slate-50 p-4 rounded-2xl border hover:border-rose-500 cursor-pointer transition-all">
+                    <h5 class="font-bold text-xs mb-1 h-8 overflow-hidden">${p.Nama_Barang}</h5>
+                    <p class="font-black ali-red-text text-sm">Rp ${Number(p.Harga_Jual).toLocaleString()}</p>
+                </div>
+            `).join('');
+        }
         document.getElementById('barcode-scan').onkeypress = (e) => { if(e.key === 'Enter') addToCart(e.target.value); };
-        function removeFromCart(i) { cart.splice(i, 1); updateUI(); }
-        function clearCart() { cart = []; updateUI(); }
         function logout() { sessionStorage.clear(); window.location.replace("index.html"); }
+        function clearCart() { cart = []; updateUI(); }
     </script>
 </body>
 </html>
