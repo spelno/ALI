@@ -2,278 +2,154 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ALI OWNER - Mobile Command V5</title>
-    <script>
-        const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
-        if (!session || session.role.toLowerCase().trim() !== 'owner') {
-            window.location.href = "index.html"; 
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI - Owner Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #f1f5f9; color: #0f172a; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        .card { 
-            background: white; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
-            border-radius: 1.5rem;
-        }
-        .accent-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white; border-radius: 1.5rem;
-        }
-        .text-gradient-rose {
-            background: linear-gradient(to right, #fb7185, #e11d48);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        /* Responsif Chart Height */
-        .chart-container { position: relative; height: 160px; width: 100%; }
-        @media (max-width: 640px) {
-            .card { border-radius: 1rem; padding: 1.25rem !important; }
-            h2 { font-size: 2rem !important; }
-        }
-        /* Custom Scrollbar for Void List */
-        #void-list::-webkit-scrollbar { width: 4px; }
-        #void-list::-webkit-scrollbar-thumb { background: rgba(244, 63, 94, 0.2); rounded: 10px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .ali-red { background-color: #e11d48; }
+        .ali-red-text { color: #e11d48; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8 pb-16">
+<body class="h-screen flex overflow-hidden">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-6 md:mb-8">
+    <aside class="w-24 bg-white border-r border-slate-200 flex flex-col items-center py-10 gap-10 shadow-sm">
+        <div class="text-2xl font-black ali-red-text italic tracking-tighter">ALI</div>
+        
+        <nav class="flex flex-col gap-6">
+            <button onclick="location.reload()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 transition-all shadow-sm" title="Dashboard">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            </button>
+            <button onclick="window.location.href='kasir.html'" class="p-4 rounded-2xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all" title="Buka Kasir">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </button>
+        </nav>
+
+        <button onclick="logout()" class="mt-auto p-4 text-slate-300 hover:text-rose-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+        </button>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
+        <header class="flex justify-between items-center mb-10">
             <div>
-                <h1 class="text-2xl md:text-3xl font-black italic tracking-tighter uppercase text-slate-900">ALI <span class="text-rose-600">OWNER</span></h1>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Mobile Executive Dashboard</p>
+                <h1 class="text-4xl font-black text-slate-800 tracking-tight italic uppercase">DASHBOARD OWNER</h1>
+                <p class="text-slate-400 font-bold text-sm tracking-widest uppercase mt-1">Laporan Real-time Toko Anda</p>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="openModal()" class="w-10 h-10 md:w-auto md:px-5 md:py-3 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-rose-600 transition-all shadow-lg shadow-slate-200">
-                    <span class="hidden md:inline text-[10px] font-black uppercase tracking-widest">+ Catat Biaya</span>
-                    <svg class="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                </button>
-                <button onclick="logout()" class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-rose-50 transition-all">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                </button>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p id="owner-name" class="font-bold text-slate-800">-</p>
+                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Administrator</p>
+                </div>
+                <div class="w-12 h-12 bg-rose-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center font-bold text-rose-600">A</div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 mb-5">
-            <div class="md:col-span-12 accent-card p-6 md:p-8 shadow-xl shadow-slate-200 flex flex-col sm:flex-row justify-between sm:items-center">
-                <div>
-                    <p class="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1">Laba Bersih (Net Profit)</p>
-                    <h2 id="profit-bersih" class="text-4xl md:text-5xl font-black italic tracking-tighter">Rp 0</h2>
-                </div>
-                <div class="flex gap-3 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-700">
-                    <div class="bg-rose-950/40 px-4 py-2 rounded-xl border border-rose-800 text-center sm:text-right">
-                        <p class="text-[7px] font-bold text-rose-300 uppercase tracking-widest">Margin Bersih</p>
-                        <p id="margin-bersih" class="text-xs font-black text-rose-100 italic">0%</p>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+            <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Penjualan Hari Ini</p>
+                <h2 id="today-sales" class="text-3xl font-black text-slate-800">Rp 0</h2>
             </div>
-
-            <div class="md:col-span-4 card p-6 border-slate-200 flex flex-col justify-between">
-                <p class="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-2">Total Omzet</p>
-                <h4 id="omzet" class="text-2xl font-black italic text-slate-900">Rp 0</h4>
+            <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Transaksi</p>
+                <h2 id="today-count" class="text-3xl font-black text-slate-800">0</h2>
             </div>
-            
-            <div class="md:col-span-4 card p-6 border-emerald-100 bg-emerald-50 flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute -right-5 -bottom-5 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
-                <div class="flex justify-between items-start z-10">
-                    <div>
-                        <p class="text-emerald-700 text-[9px] font-black uppercase tracking-widest mb-2">Laba Kotor (Gross)</p>
-                        <h4 id="laba-kotor" class="text-2xl font-black italic text-emerald-900">Rp 0</h4>
-                    </div>
-                    <p id="margin-kotor" class="text-[9px] font-bold text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-md">0% Margin</p>
+            <div class="bg-amber-50 p-8 rounded-[2.5rem] border border-amber-200">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Stock Warning</p>
+                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
                 </div>
-            </div>
-
-            <div class="md:col-span-4 card p-6 border-rose-100 bg-rose-50 flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute -right-5 -bottom-5 w-20 h-20 bg-rose-500/10 rounded-full blur-xl"></div>
-                <p class="text-rose-700 text-[9px] font-black uppercase tracking-widest mb-2 z-10">OPEX / Pengeluaran</p>
-                <h4 id="biaya" class="text-2xl font-black italic text-rose-900 z-10">Rp 0</h4>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            
-            <div class="card p-6 flex flex-col justify-between">
-                <h3 class="text-[9px] font-black uppercase tracking-widest text-slate-400 italic mb-4">Grafik Transaksi (Traffic)</h3>
-                <div class="chart-container"><canvas id="chartPeak"></canvas></div>
-                <p class="text-[9px] text-slate-500 mt-2 italic">Puncak pada pukul <span id="peak-time" class="font-bold text-slate-950">--:00</span></p>
-            </div>
-
-            <div class="card p-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <p class="text-rose-600 text-[9px] font-black uppercase mb-3 tracking-widest flex items-center gap-1.5">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            Top selling
-                        </p>
-                        <div id="top-products" class="space-y-2 text-xs font-bold text-slate-600 italic">Memuat...</div>
-                    </div>
-                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                        <p class="text-amber-700 text-[9px] font-black uppercase mb-2.5 tracking-widest flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            Stock Warning
-                        </p>
-                        <div id="dead-products" class="space-y-1.5 text-[11px] font-bold text-amber-900/80 italic">Memuat...</div>
-                    </div>
-                </div>
-                <div class="mt-5 pt-3 border-t border-slate-100 text-[11px] font-bold text-slate-600 flex justify-between">
-                    <span>Kasir Aktif</span><span id="last-cashier" class="text-emerald-700 italic">---</span>
-                </div>
-            </div>
-
-            <div class="card p-6 flex flex-col gap-5">
-                <div>
-                    <h3 class="text-[9px] font-black uppercase tracking-widest text-slate-400 italic mb-3">Split Payment</h3>
-                    <div class="grid grid-cols-3 gap-2" id="pay-list">Memuat...</div>
-                </div>
-                <div class="bg-rose-950/5 p-4 rounded-xl border border-rose-100/70">
-                    <h3 class="text-[9px] font-black uppercase tracking-widest text-rose-600 mb-3 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        Fraud Monitor (Void)
-                    </h3>
-                    <div id="void-list" class="space-y-2 h-[80px] overflow-y-auto text-[10px] font-bold text-rose-900/80 italic">Memuat...</div>
-                </div>
-            </div>
-
-        </div>
-
-        <footer class="mt-10 text-center text-[8px] font-bold text-slate-400 uppercase tracking-[0.5em]">
-            ALI Executive System &copy; 2026
-        </footer>
-    </div>
-
-    <div id="modalExpense" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6 z-50">
-        <div class="bg-white p-8 md:p-10 rounded-t-[2rem] md:rounded-[2.5rem] w-full max-w-md shadow-2xl transition-all scale-100">
-            <h3 class="text-lg md:text-xl font-black italic uppercase mb-6 text-slate-900 text-center md:text-left">Catat <span class="text-rose-600">Biaya OPEX</span></h3>
-            <div class="space-y-4">
-                <input type="text" id="exDesc" placeholder="Deskripsi (Listrik, Gaji, dll)" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-slate-200 font-bold text-sm">
-                <input type="number" pattern="\d*" id="exAmount" placeholder="Jumlah Rp" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-slate-200 font-bold text-sm">
-                <div class="flex flex-col-reverse md:flex-row gap-3 mt-5">
-                    <button onclick="closeModal()" class="w-full p-4 font-black uppercase text-[10px] text-slate-400">Tutup</button>
-                    <button onclick="submitExpense()" id="btnEx" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px] shadow-lg shadow-slate-200 active:scale-95 transition-all">Simpan Data</button>
+                <div id="stock-warning-list" class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                    <p class="text-xs text-amber-400 italic">Memuat data stok...</p>
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="bg-white rounded-[2.5rem] card-shadow border border-slate-100 overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter italic">Transaksi Terakhir</h3>
+                <button onclick="fetchData()" class="text-xs font-bold text-rose-600 hover:underline">Refresh Data</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-5">Waktu</th>
+                            <th class="px-8 py-5">Produk</th>
+                            <th class="px-8 py-5">Qty</th>
+                            <th class="px-8 py-5">Total</th>
+                            <th class="px-8 py-5">Kasir</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-table-body" class="text-sm font-bold text-slate-600">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 
     <script>
-        // MASUKKAN URL /exec ANDA DI SINI
-        const API_URL = "https://script.google.com/macros/s/AKfycby-78SaJUfTDB8hyL6UD1g-YodY0FkiV7FvG14a0YEUAn9PC6ZxeHSPoSdabwCa31RTXQ/exec"; 
-        let chartPeak;
+        const API_URL = "https://script.google.com/macros/s/AKfycbyYAwGJIKVKyph_9lNfo2FPxWVwL3Y0lMa8r2jY_uvdFWAcOV7yJ6LPTcmpdr0zRLXBEw/exec"; // GANTI DENGAN URL WEB APP ANDA
+        const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
 
-        async function init() {
-            try {
-                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getOwnerReport" }) });
-                const r = await res.json();
-                if(r.status === "success") {
-                    const d = r.data;
-                    
-                    // Stats Utama
-                    document.getElementById('profit-bersih').innerText = "Rp " + d.profitBersih.toLocaleString();
-                    document.getElementById('omzet').innerText = "Rp " + d.omzet.toLocaleString();
-                    document.getElementById('laba-kotor').innerText = "Rp " + d.labaKotor.toLocaleString();
-                    document.getElementById('biaya').innerText = "Rp " + d.biaya.toLocaleString();
-                    document.getElementById('margin-bersih').innerText = d.marginBersih + "% Efisiensi";
-                    document.getElementById('margin-kotor').innerText = d.marginKotor + "% Margin";
-                    document.getElementById('last-cashier').innerText = d.lastCashier;
-
-                    // Top Selling
-                    document.getElementById('top-products').innerHTML = d.topProducts.map((p,i)=>`
-                        <div class="flex justify-between items-center border-b border-slate-50 pb-1.5">
-                            <span><span class="text-rose-500 mr-1.5">#${i+1}</span> ${p.nama.length > 15 ? p.nama.substring(0,13)+'..' : p.nama}</span>
-                            <span class="text-[10px] text-slate-400 font-black">${p.qty}</span>
-                        </div>`).join('');
-                        
-                    // Stock Warning (Dead Stock) - FIX: Ambil Stok Paling Sedikit
-                    if(d.deadStock.length > 0){
-                        document.getElementById('dead-products').innerHTML = d.deadStock.map(p=>`
-                            <div class="flex justify-between items-center bg-white/[0.6] p-1.5 rounded-lg mb-1">
-                                <span>⚠️ ${p.nama.length > 12 ? p.nama.substring(0,10)+'..' : p.nama}</span>
-                                <span class="text-xs font-black text-amber-950">${p.stok}</span>
-                            </div>`).join('');
-                    } else {
-                        document.getElementById('dead-products').innerHTML = "<p class='text-[10px] opacity-50 italic text-center pt-3'>Stok Kosong</p>";
-                    }
-
-                    // Split Payment
-                    document.getElementById('pay-list').innerHTML = Object.keys(d.payments).map(k=>`
-                        <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg text-center">
-                            <p class="text-[7px] font-black text-slate-400 uppercase tracking-widest">${k}</p>
-                            <p class="text-[11px] font-extrabold text-slate-800 leading-tight">Rp ${d.payments[k].toLocaleString()}</p>
-                        </div>`).join('');
-                    
-                    // Void List
-                    if(d.voids.length > 0) {
-                        document.getElementById('void-list').innerHTML = d.voids.map(v=>`
-                            <div class="p-2 border-b border-rose-100">🚫 ${v.barang} (${v.kasir})<br><span class="text-[8px] opacity-70">${v.alasan}</span></div>`).join('');
-                    } else {
-                        document.getElementById('void-list').innerHTML = "<p class='text-center opacity-30 mt-6 text-[11px]'>Bersih dari Void</p>";
-                    }
-                    
-                    renderPeakChart(d.peakHours);
-                }
-            } catch(e) { console.error(e); }
+        // Cek Login
+        if(!session || session.role !== 'Owner') {
+            // Jika bukan owner, tendang ke login
+            window.location.replace("index.html");
+        } else {
+            document.getElementById('owner-name').innerText = session.nama;
         }
 
-        function renderPeakChart(hours) {
-            const ctx = document.getElementById('chartPeak').getContext('2d');
-            if(chartPeak) chartPeak.destroy();
-            chartPeak = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(hours).map(h => h + ":00"),
-                    datasets: [{ 
-                        data: Object.values(hours), 
-                        borderColor: '#f43f5e', 
-                        tension: 0.4, 
-                        fill: true, 
-                        backgroundColor: 'rgba(244, 63, 94, 0.05)',
-                        borderWidth: 2, 
-                        pointRadius: 0,
-                        pointHoverRadius: 5
-                    }]
-                },
-                options: { 
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        y: { display: false, grid: { display: false } }, 
-                        x: { grid: { display: false }, ticks: { font: { size: 7 }, color: '#94a3b8' } } 
-                    } 
+        window.onload = () => {
+            fetchData();
+            loadStockWarning();
+        };
+
+        async function fetchData() {
+            try {
+                // Mengambil data transaksi dari script (Asumsi action getTransactions ada di GS)
+                const res = await fetch(`${API_URL}?action=getProducts`); // Sementara ambil produk
+                // Note: Di sini Anda bisa memanggil data transaksi real jika sudah ada action-nya
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadStockWarning() {
+            try {
+                const res = await fetch(`${API_URL}?action=getLowStock`);
+                const data = await res.json();
+                const container = document.getElementById('stock-warning-list');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="text-amber-500 text-xs italic text-center py-4">Semua stok aman ✓</p>';
+                    return;
                 }
-            });
-            
-            if(Object.keys(hours).length > 0) {
-                const peakHour = Object.keys(hours).reduce((a, b) => hours[a] > hours[b] ? a : b, 0);
-                document.getElementById('peak-time').innerText = peakHour + ":00";
+
+                container.innerHTML = data.map(item => `
+                    <div class="flex justify-between items-center p-3 bg-white/60 rounded-2xl border border-amber-200 shadow-sm">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-800 truncate w-32">${item.nama}</span>
+                            <span class="text-[8px] font-black text-amber-600 uppercase">Min: ${item.min}</span>
+                        </div>
+                        <span class="px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black">
+                            ${item.stok}
+                        </span>
+                    </div>
+                `).join('');
+            } catch (e) {
+                document.getElementById('stock-warning-list').innerHTML = '<p class="text-rose-400 text-xs italic">Gagal memuat data</p>';
             }
         }
 
-        function openModal() { document.getElementById('modalExpense').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modalExpense').classList.add('hidden'); }
-        
-        async function submitExpense() {
-            const desc = document.getElementById('exDesc').value, amount = document.getElementById('exAmount').value;
-            const btn = document.getElementById('btnEx');
-            if(!desc || !amount) return alert("Mohon isi deskripsi dan jumlah biaya!");
-            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
-            try {
-                await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "addExpense", desc, amount, cat: "Operasional", admin: session.nama })});
-                btn.innerText = "SIMPAN DATA"; btn.disabled = false;
-                closeModal(); init();
-                document.getElementById('exDesc').value = ''; document.getElementById('exAmount').value = '';
-            } catch(e) { alert("Gagal koneksi!"); btn.innerText = "SIMPAN DATA"; btn.disabled = false; }
+        function logout() {
+            if(confirm("Keluar dari Dashboard?")) {
+                sessionStorage.clear();
+                window.location.replace("index.html");
+            }
         }
-        function logout() { sessionStorage.removeItem('ali_session_v4'); window.location.href = "index.html"; }
-        window.onload = init;
     </script>
 </body>
 </html>
