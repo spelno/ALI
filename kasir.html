@@ -3,32 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS System - Professional Edition</title>
+    <title>POS System - Notes of OD</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; }
-        .nav-btn { 
-            display: flex; flex-direction: column; align-items: center; 
-            padding: 14px; border-radius: 12px; color: #94a3b8; transition: 0.2s; 
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 14px; border-radius: 12px; color: #94a3b8; transition: 0.2s; }
         .nav-btn:hover { background: #f1f5f9; color: #e11d48; }
         .nav-active { background: #e11d48 !important; color: white !important; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .panel-right { border-left: 1px solid #e2e8f0; background: #ffffff; }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden" onclick="closeReceipt()">
 
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-6 gap-4 z-50">
-        <div class="font-black text-rose-600 mb-6 text-xl italic">ALI</div>
+    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50 shadow-sm" onclick="event.stopPropagation()">
+        <div class="font-black text-rose-600 mb-8 text-xl italic tracking-tighter">ALI</div>
         <nav class="flex flex-col gap-4 w-full px-2">
-            <button onclick="switchView('catalog')" id="tab-catalog" class="nav-btn nav-active" title="Kasir & Katalog">
+            <button onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 <span class="text-[8px] font-bold mt-1 uppercase">POS</span>
             </button>
-            <button onclick="switchView('inventory')" id="tab-inventory" class="nav-btn" title="Cek Stok">
+            <button onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 <span class="text-[8px] font-bold mt-1 uppercase">STOK</span>
             </button>
@@ -38,59 +34,50 @@
         </button>
     </aside>
 
-    <main class="flex-1 flex flex-col p-8 overflow-hidden bg-white">
-        <header class="flex justify-between items-center mb-8">
-            <h2 class="text-3xl font-extrabold tracking-tighter text-slate-800 uppercase italic">Keranjang</h2>
-            <div class="text-right">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Bayar</p>
-                <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter">Rp 0</h1>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto custom-scrollbar border-y border-slate-50 py-4" id="cart-list">
-            </div>
-
-        <div class="mt-8 grid grid-cols-12 gap-4">
-            <div class="col-span-8">
-                <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE / INPUT MANUAL..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold text-rose-600 outline-none focus:border-rose-500 transition-all shadow-sm">
-            </div>
-            <div class="col-span-4 flex gap-2">
-                <div class="flex-1 bg-slate-50 rounded-2xl border border-slate-100 px-6 flex flex-col justify-center">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Tunai</span>
-                    <input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full text-slate-700" placeholder="0">
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase">Kembalian</span>
-                <span id="change-display" class="text-2xl font-black text-emerald-500 italic">Rp 0</span>
-            </div>
-            <button onclick="handleTransaction()" id="btn-pay" class="bg-rose-600 text-white font-black px-12 py-5 rounded-2xl shadow-lg hover:bg-rose-700 active:scale-95 transition-all uppercase tracking-tighter text-lg">Selesai & Cetak</button>
-        </div>
-    </main>
-
-    <aside class="w-[380px] panel-right flex flex-col overflow-hidden">
+    <main class="flex-1 flex flex-col p-8 overflow-hidden bg-white relative" onclick="event.stopPropagation()">
         
-        <div id="panel-catalog" class="flex flex-col h-full">
-            <div class="p-6 border-b">
-                <h3 class="font-bold text-xs uppercase tracking-[0.2em] text-slate-400 italic">Katalog Cepat</h3>
-            </div>
-            <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 custom-scrollbar bg-slate-50/50">
+        <div id="view-pos" class="flex flex-col h-full">
+            <header class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-extrabold tracking-tighter text-slate-800 uppercase italic">Keranjang</h2>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Belanja</p>
+                    <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter">Rp 0</h1>
                 </div>
+            </header>
+            <div class="flex-1 overflow-y-auto custom-scrollbar border-y border-slate-50 py-4" id="cart-list"></div>
+            
+            <div class="mt-8 grid grid-cols-12 gap-4">
+                <div class="col-span-8">
+                    <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold text-rose-600 outline-none focus:border-rose-500 transition-all">
+                </div>
+                <div class="col-span-4 bg-slate-50 rounded-2xl border border-slate-100 px-6 flex flex-col justify-center">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">Input Tunai</span>
+                    <input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full" placeholder="0">
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Kembalian</span>
+                    <span id="change-display" class="text-2xl font-black text-emerald-500 block italic">Rp 0</span>
+                </div>
+                <button onclick="handleTransaction()" id="btn-pay" class="bg-rose-600 text-white font-black px-12 py-5 rounded-2xl shadow-lg hover:bg-rose-700 active:scale-95 transition-all uppercase text-lg italic">Simpan & Cetak</button>
+            </div>
         </div>
 
-        <div id="panel-inventory" class="hidden flex flex-col h-full">
-            <div class="p-6 border-b">
-                <h3 class="font-bold text-xs uppercase tracking-[0.2em] text-slate-400 italic">Status Stok</h3>
-            </div>
-            <div class="flex-1 overflow-y-auto custom-scrollbar">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 sticky top-0 border-b">
-                        <tr>
-                            <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Produk</th>
-                            <th class="p-4 text-[10px] font-bold uppercase text-slate-400 text-center">Stok</th>
+        <div id="view-inventory" class="hidden flex flex-col h-full bg-white animate-in fade-in duration-300">
+            <header class="mb-6">
+                <h2 class="text-3xl font-extrabold tracking-tighter text-slate-800 uppercase italic">Stock & Inventory</h2>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Status ketersediaan barang real-time</p>
+            </header>
+            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 sticky top-0 z-10">
+                        <tr class="border-b border-slate-100">
+                            <th class="p-5 font-bold text-slate-400 uppercase text-xs">Barcode</th>
+                            <th class="p-5 font-bold text-slate-400 uppercase text-xs">Nama Barang</th>
+                            <th class="p-5 font-bold text-slate-400 uppercase text-xs text-center">Stok</th>
+                            <th class="p-5 font-bold text-slate-400 uppercase text-xs text-right">Harga Jual</th>
                         </tr>
                     </thead>
                     <tbody id="inventory-table-body" class="divide-y divide-slate-50">
@@ -98,11 +85,23 @@
                 </table>
             </div>
         </div>
+    </main>
+
+    <aside class="w-[340px] bg-white border-l flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+        <div class="p-6 border-b"><h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 italic">Katalog Cepat</h3></div>
+        <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 custom-scrollbar bg-slate-50/30"></div>
     </aside>
+
+    <div id="receipt-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] items-center justify-center p-6 cursor-pointer">
+        <div class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 cursor-default" onclick="event.stopPropagation()">
+            <div id="receipt-content"></div>
+            <p class="text-center text-[9px] text-slate-300 mt-6 uppercase tracking-widest">Klik di mana saja untuk menutup</p>
+        </div>
+    </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwDX934LugMyjWFT-CXrVYoEQDfajg_aBYBe1y5G2M8p6VM8ymX0Wc9Z9341KKxIpQgjQ/exec"; 
-        let products = [], cart = [], currentView = 'catalog';
+        let products = [], cart = [];
 
         window.onload = fetchData;
 
@@ -110,17 +109,21 @@
             try {
                 const res = await fetch(`${API_URL}?action=getProducts`);
                 products = await res.json();
-                renderCatalog();
+                renderCatalog(); 
                 renderInventory();
-            } catch (e) { console.error("Database Gagal"); }
+            } catch (e) { console.error("Database fail"); }
         }
 
-        function switchView(view) {
-            currentView = view;
-            document.getElementById('panel-catalog').classList.toggle('hidden', view !== 'catalog');
-            document.getElementById('panel-inventory').classList.toggle('hidden', view !== 'inventory');
-            document.getElementById('tab-catalog').className = view === 'catalog' ? 'nav-btn nav-active' : 'nav-btn';
+        // FUNGSI GANTI HALAMAN TENGAH
+        function switchMainView(view) {
+            document.getElementById('view-pos').classList.toggle('hidden', view !== 'pos');
+            document.getElementById('view-inventory').classList.toggle('hidden', view !== 'inventory');
+            document.getElementById('tab-pos').className = view === 'pos' ? 'nav-btn nav-active' : 'nav-btn';
             document.getElementById('tab-inventory').className = view === 'inventory' ? 'nav-btn nav-active' : 'nav-btn';
+            
+            if(view === 'pos') {
+                setTimeout(() => document.getElementById('barcode-scan').focus(), 100);
+            }
         }
 
         function handleManualInput(e) { if(e.key === 'Enter') { addToCart(e.target.value); e.target.value = ''; } }
@@ -131,6 +134,8 @@
             const existing = cart.find(c => c.Barcode.toString() === bc.toString());
             if(existing) { existing.Qty += 1; } else { cart.push({...p, Qty: 1}); }
             updateUI();
+            // Otomatis pindah ke view POS jika sedang di inventory tapi ada yang discan
+            switchMainView('pos');
         }
 
         function updateUI() {
@@ -138,11 +143,8 @@
             let total = 0;
             list.innerHTML = cart.map((item, idx) => {
                 const sub = item.Harga_Jual * item.Qty; total += sub;
-                return `<div class="flex justify-between items-center py-5 border-b border-slate-50 px-2 group hover:bg-slate-50/50 rounded-xl transition-all">
-                    <div class="flex-1">
-                        <p class="font-bold text-slate-800 text-sm uppercase leading-tight">${item.Nama_Barang}</p>
-                        <p class="text-[9px] text-slate-300 font-bold">${item.Barcode}</p>
-                    </div>
+                return `<div class="flex justify-between items-center py-4 border-b border-slate-50 px-2 group hover:bg-slate-50 rounded-xl transition-all">
+                    <div class="flex-1"><p class="font-bold text-slate-800 text-sm uppercase">${item.Nama_Barang}</p><p class="text-[9px] text-slate-300 font-bold">${item.Barcode}</p></div>
                     <div class="flex items-center gap-6">
                         <span class="font-black text-slate-300 italic">x${item.Qty}</span>
                         <span class="font-bold text-rose-600 w-24 text-right italic">Rp ${sub.toLocaleString()}</span>
@@ -165,7 +167,7 @@
         function renderCatalog() {
             const grid = document.getElementById('catalog-grid');
             grid.innerHTML = products.map(p => `
-                <button onclick="addToCart('${p.Barcode}')" class="p-4 bg-white border border-slate-100 rounded-2xl text-left hover:border-rose-500 hover:shadow-md transition-all group">
+                <button onclick="addToCart('${p.Barcode}')" class="p-4 bg-white border border-slate-100 rounded-2xl text-left hover:border-rose-500 transition-all shadow-sm group">
                     <p class="font-bold text-slate-800 text-[10px] uppercase leading-tight h-8 overflow-hidden mb-2 group-hover:text-rose-600">${p.Nama_Barang}</p>
                     <p class="text-rose-600 font-black text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
                 </button>
@@ -176,17 +178,22 @@
             const body = document.getElementById('inventory-table-body');
             body.innerHTML = products.map(p => `
                 <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-4"><p class="font-bold text-slate-700 text-[11px] uppercase">${p.Nama_Barang}</p><p class="text-[9px] text-slate-300">${p.Barcode}</p></td>
-                    <td class="p-4 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-[11px]">${p.Stok}</span></td>
+                    <td class="p-5 text-[10px] font-bold text-slate-400 tracking-wider">${p.Barcode}</td>
+                    <td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td>
+                    <td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td>
+                    <td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td>
                 </tr>
             `).join('');
         }
 
         async function handleTransaction() {
-            if (cart.length === 0) return alert("Keranjang Kosong!");
+            if (cart.length === 0) return;
             const btn = document.getElementById('btn-pay');
-            btn.disabled = true; btn.innerText = "MENYIMPAN...";
+            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            const cash = document.getElementById('cash-in').value || 0;
+            const change = Math.max(0, cash - total);
 
+            btn.disabled = true; btn.innerText = "MENYIMPAN...";
             try {
                 const res = await fetch(API_URL, { 
                     method: 'POST', 
@@ -194,13 +201,30 @@
                 });
                 const result = await res.json();
                 if (result.status === "success") {
-                    alert("Transaksi Berhasil!");
-                    cart = []; updateUI();
-                    document.getElementById('cash-in').value = '';
-                    fetchData(); // Refresh stok otomatis
+                    const d = { invoice: result.invoice, items: [...cart], total, cash, change, date: new Date().toLocaleString() };
+                    showDigitalReceipt(d);
+                    cart = []; updateUI(); document.getElementById('cash-in').value = '';
+                    fetchData();
                 }
-            } catch (e) { alert("Gagal Simpan!"); }
-            finally { btn.disabled = false; btn.innerText = "Selesai & Cetak"; }
+            } catch (e) { alert("Koneksi Error"); }
+            finally { btn.disabled = false; btn.innerText = "Simpan & Cetak"; }
+        }
+
+        function showDigitalReceipt(d) {
+            const modal = document.getElementById('receipt-modal');
+            document.getElementById('receipt-content').innerHTML = `
+                <div class="text-center border-b border-dashed pb-4 mb-4"><h4 class="font-black text-rose-600 italic uppercase">ALI POS</h4><p class="text-[9px] text-slate-400 font-bold">${d.invoice}</p></div>
+                <div class="space-y-2 mb-4">${d.items.map(i => `<div class="flex justify-between text-[11px] font-bold"><span>${i.Nama_Barang} x${i.Qty}</span><span>${(i.Qty*i.Harga_Jual).toLocaleString()}</span></div>`).join('')}</div>
+                <div class="border-t border-dashed pt-4 flex justify-between font-black text-rose-600 uppercase italic"><span>Total</span><span>Rp ${d.total.toLocaleString()}</span></div>
+                <div class="mt-4 flex justify-between text-[10px] font-bold text-slate-400"><span>Tunai</span><span>Rp ${Number(d.cash).toLocaleString()}</span></div>
+                <div class="flex justify-between text-[10px] font-bold text-emerald-500"><span>Kembali</span><span>Rp ${d.change.toLocaleString()}</span></div>
+            `;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        function closeReceipt() { 
+            const m = document.getElementById('receipt-modal');
+            if (!m.classList.contains('hidden')) { m.classList.add('hidden'); m.classList.remove('flex'); }
         }
 
         function logout() { window.location.replace("index.html"); }
