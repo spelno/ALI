@@ -3,162 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Business Intelligence</title>
+    <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         @media print {
             body * { visibility: hidden; }
             #receipt-print-area, #receipt-print-area * { visibility: visible; }
-            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100%; color: black !important; }
+            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100% !important; color: black; }
         }
     </style>
 </head>
-<body class="p-6 lg:p-12 min-h-screen">
+<body class="p-8 min-h-screen">
 
-    <header class="max-w-6xl mx-auto flex justify-between items-center mb-12">
-        <div>
-            <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] mb-1 italic">Control Panel</p>
-            <h1 class="text-3xl font-black uppercase italic tracking-tighter">Admin <span class="text-rose-500">Dashboard</span></h1>
-        </div>
+    <header class="max-w-5xl mx-auto flex justify-between items-center mb-12">
+        <h1 class="text-2xl font-black uppercase italic tracking-tighter">Admin <span class="text-rose-500">Panel</span></h1>
         <div class="flex gap-4">
-            <button onclick="openReprintModal()" class="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Reprint Nota</button>
-            <button onclick="logout()" class="px-6 py-3 bg-rose-600/10 border border-rose-500/20 text-rose-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">Keluar</button>
+            <button onclick="openReprint()" class="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase italic">Reprint Nota</button>
+            <button onclick="location.reload()" class="px-6 py-3 bg-rose-600/20 text-rose-500 rounded-xl text-[10px] font-black uppercase italic">Logout</button>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="glass-card p-8 rounded-[3rem]">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Omzet Hari Ini</p>
-                <h2 id="txt-sales" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
-            </div>
-            <div class="glass-card p-8 rounded-[3rem]">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Operasional</p>
-                <h2 id="txt-expense" class="text-4xl font-black italic tracking-tighter text-rose-500">Rp 0</h2>
-            </div>
-            <div class="ali-gradient p-8 rounded-[3rem] shadow-2xl">
-                <p class="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4 italic">Laba Bersih</p>
-                <h2 id="txt-profit" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="glass-card p-10 rounded-[3.5rem] h-[500px] flex flex-col">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic">History Pengeluaran</h3>
-                <div id="expense-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
-                    </div>
-            </div>
-
-            <div class="glass-card p-10 rounded-[3.5rem] h-[500px] flex flex-col">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic">Stok Menipis</h3>
-                <div id="low-stock-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
-                    </div>
-                <button onclick="loadOwnerData()" class="mt-8 w-full bg-white/5 py-4 rounded-2xl text-[10px] font-black uppercase border border-white/5 hover:bg-white/10 transition-all">Refresh Data</button>
-            </div>
+    <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="glass p-8 rounded-[2rem]">
+            <p class="text-[10px] font-black text-slate-400 uppercase italic mb-2">Omzet Hari Ini</p>
+            <h2 id="txt-sales" class="text-3xl font-black italic">Rp 0</h2>
         </div>
     </main>
 
-    <div id="reprint-modal" class="hidden fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-        <div class="bg-white text-slate-900 w-full max-w-sm p-10 rounded-[4rem] shadow-2xl">
-            <h3 class="text-center font-black uppercase italic text-slate-800 mb-6 tracking-tighter text-xl">Reprint Nota</h3>
-            <input type="text" id="input-inv" placeholder="Masukkan ID Invoice..." 
-                class="w-full p-5 bg-slate-100 border-none rounded-[2rem] font-bold text-center outline-none focus:ring-2 focus:ring-rose-500 mb-6 text-sm uppercase">
+    <div id="modal-reprint" class="hidden fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div class="bg-white text-slate-900 w-full max-w-sm p-10 rounded-[3rem]">
+            <h3 class="text-center font-black uppercase italic mb-6">Cetak Ulang Nota</h3>
+            <input type="text" id="input-inv" placeholder="ID Invoice (INV-...)" class="w-full p-4 bg-slate-100 rounded-xl font-bold text-center outline-none mb-6">
             <div class="grid grid-cols-2 gap-4">
-                <button onclick="closeReprintModal()" class="py-5 text-slate-400 font-black uppercase text-[10px]">Batal</button>
-                <button onclick="fetchAndPrint()" id="btn-search-inv" class="ali-gradient py-5 text-white rounded-[2rem] font-black uppercase italic text-[10px] shadow-lg">Cari & Cetak</button>
+                <button onclick="document.getElementById('modal-reprint').classList.add('hidden')" class="text-slate-400 font-bold uppercase text-[10px]">Batal</button>
+                <button onclick="fetchPrint()" id="btn-search" class="ali-gradient py-4 text-white rounded-xl font-black uppercase italic text-[10px]">Cetak</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-receipt" onclick="this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-6 cursor-pointer">
-        <div id="receipt-print-area" class="bg-white w-full max-w-[350px] p-8 font-mono text-[11px] text-slate-800 rounded-lg shadow-2xl">
+    <div id="modal-receipt" onclick="this.classList.add('hidden')" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-6">
+        <div id="receipt-print-area" class="bg-white p-8 font-mono text-[11px] text-slate-800 rounded shadow-2xl">
             <div class="text-center mb-4">
-                <h2 class="font-bold text-lg uppercase">ALI POS TERMINAL</h2>
-                <p>SALINAN NOTA RESMI</p>
+                <h2 class="font-bold text-lg uppercase" id="r-store-name">...</h2>
+                <p id="r-address">...</p>
                 <div class="border-b border-dashed my-4 border-slate-300"></div>
             </div>
-            <div class="flex justify-between mb-1"><span>Invoice:</span><span id="r-inv" class="font-bold"></span></div>
-            <div class="flex justify-between mb-4"><span>Kasir:</span><span id="r-cashier"></span></div>
-            <div class="border-b border-dashed mb-4 border-slate-300"></div>
-            <div id="r-items" class="space-y-2 mb-4"></div>
-            <div class="border-b border-dashed mb-4 border-slate-300"></div>
-            <div class="flex justify-between font-bold text-sm"><span>TOTAL:</span><span id="r-total"></span></div>
-            <div class="flex justify-between"><span>METODE:</span><span id="r-method"></span></div>
-            <div class="border-b border-dashed my-6 border-slate-300"></div>
-            <p class="text-center italic uppercase">Dokumen Internal Admin</p>
+            <div class="flex justify-between"><span>Inv:</span><span id="r-inv" class="font-bold"></span></div>
+            <div id="r-items" class="space-y-2 my-4"></div>
+            <div class="border-t border-dashed pt-4">
+                <div class="flex justify-between font-bold"><span>TOTAL:</span><span id="r-total"></span></div>
+            </div>
+            <div class="text-center italic mt-6 border-t border-dashed pt-4 border-slate-300" id="r-footer">...</div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxub6g9IM8hDZc9qW-sm38euZ3hUiV3wfc9SXl8EPkh3s-vmSVX8Oo8RmSVGCWupctY3A/exec"; // GANTI DENGAN URL WEB APP ANDA
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1EKtMiInb5-NqqoaOJzPzNcSRhLmgcfWqmQfIPQkamq1yWUym8aeBv2WvWQyz_NDnLw/exec";
+        let storeSettings = {};
 
-        window.onload = () => {
-            const session = JSON.parse(localStorage.getItem('ali_session'));
-            if (!session || session.role !== 'owner') window.location.href = "index.html";
-            loadOwnerData();
+        window.onload = async () => {
+            const res = await fetch(SCRIPT_URL + "?action=settings");
+            storeSettings = await res.json();
+            document.getElementById('receipt-print-area').style.width = (storeSettings.Lebar_Kertas || 58) + "mm";
+            
+            const stats = await fetch(SCRIPT_URL + "?action=ownerFullStats");
+            const d = await stats.json();
+            document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
         };
 
-        async function loadOwnerData() {
-            try {
-                const res = await fetch(SCRIPT_URL + "?action=ownerFullStats");
-                const d = await res.json();
-                document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
-                document.getElementById('txt-expense').innerText = "Rp " + d.expense.toLocaleString();
-                document.getElementById('txt-profit').innerText = "Rp " + d.profit.toLocaleString();
+        function openReprint() { document.getElementById('modal-reprint').classList.remove('hidden'); }
 
-                document.getElementById('expense-list').innerHTML = d.expenses.length === 0 ? `<p class="text-slate-600 text-center py-20 italic">No data</p>` :
-                    d.expenses.map(e => `
-                        <div class="p-5 bg-white/5 rounded-2xl flex justify-between items-center border border-white/5">
-                            <div><p class="text-[9px] font-black text-rose-500 uppercase mb-1">${e.kategori}</p><p class="font-bold text-sm uppercase text-slate-300">${e.info}</p></div>
-                            <span class="font-black text-lg italic tracking-tighter">- ${e.jumlah.toLocaleString()}</span>
-                        </div>
-                    `).join('');
-
-                document.getElementById('low-stock-list').innerHTML = d.lowStock.length === 0 ? `<p class="text-slate-600 text-center py-20 italic">Stok Aman</p>` :
-                    d.lowStock.map(p => `
-                        <div class="p-5 bg-rose-500/10 rounded-2xl border border-rose-500/20 flex justify-between items-center">
-                            <span class="font-black uppercase italic text-xs text-rose-500">${p.nama}</span>
-                            <span class="text-[10px] font-bold text-white uppercase">Sisa: ${p.stok}</span>
-                        </div>
-                    `).join('');
-            } catch (err) { console.error(err); }
-        }
-
-        function openReprintModal() { document.getElementById('reprint-modal').classList.remove('hidden'); }
-        function closeReprintModal() { document.getElementById('reprint-modal').classList.add('hidden'); }
-
-        async function fetchAndPrint() {
+        async function fetchPrint() {
             const inv = document.getElementById('input-inv').value;
-            if(!inv) return alert("Masukkan ID Invoice!");
-            const btn = document.getElementById('btn-search-inv');
-            btn.innerText = "MENCARI..."; btn.disabled = true;
-
-            try {
-                const res = await fetch(SCRIPT_URL + "?action=getTransaction&inv=" + inv);
-                const d = await res.json();
-                if(d.status === "success") {
-                    document.getElementById('reprint-modal').classList.add('hidden');
-                    document.getElementById('modal-receipt').classList.remove('hidden');
-                    document.getElementById('r-inv').innerText = d.invoice;
-                    document.getElementById('r-cashier').innerText = d.cashier;
-                    document.getElementById('r-method').innerText = d.method;
-                    document.getElementById('r-total').innerText = "Rp " + d.total.toLocaleString();
-                    document.getElementById('r-items').innerHTML = d.items.map(i => `
-                        <div class="flex justify-between"><span>${i.nama} x${i.qty}</span><span>Rp ${i.sub.toLocaleString()}</span></div>
-                    `).join('');
-                    setTimeout(() => { window.print(); }, 500);
-                } else { alert(d.message); }
-            } catch(e) { alert("Server Error!"); }
-            btn.innerText = "Cari & Cetak"; btn.disabled = false;
+            const btn = document.getElementById('btn-search');
+            btn.innerText = "Mencari...";
+            
+            const res = await fetch(SCRIPT_URL + "?action=getTransaction&inv=" + inv);
+            const d = await res.json();
+            
+            if(d.status === "success") {
+                document.getElementById('modal-reprint').classList.add('hidden');
+                document.getElementById('modal-receipt').classList.remove('hidden');
+                document.getElementById('r-store-name').innerText = storeSettings.Nama_Toko;
+                document.getElementById('r-address').innerText = storeSettings.Alamat_Toko;
+                document.getElementById('r-footer').innerText = storeSettings.Footer_Struk;
+                document.getElementById('r-inv').innerText = d.invoice;
+                document.getElementById('r-total').innerText = "Rp " + d.total.toLocaleString();
+                document.getElementById('r-items').innerHTML = d.items.map(i => `<div class="flex justify-between"><span>${i.nama} x${i.qty}</span><span>${i.sub.toLocaleString()}</span></div>`).join('');
+                setTimeout(() => { window.print(); }, 500);
+            } else { alert("Not Found"); }
+            btn.innerText = "Cetak";
         }
-
-        function logout() { localStorage.clear(); window.location.href = "index.html"; }
     </script>
 </body>
 </html>
