@@ -2,93 +2,38 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALI - Owner Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; }
-        .ali-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfbf7; }
+        .owner-header { border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px; }
+        .ali-card { background: white; border-radius: 2rem; border: 1px solid rgba(212,175,55,0.2); }
     </style>
 </head>
-<body class="p-6 pb-24">
-
-    <header class="mb-10 flex justify-between items-center">
+<body class="p-8">
+    <header class="owner-header flex justify-between items-end">
         <div>
-            <h1 class="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">OWNER PANEL</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time Monitoring | Notes of OD</p>
+            <h1 class="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">Welcome Back, <span id="nama-owner" style="color:#b8860b">Chief</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Executive Overview | Notes of OD System</p>
         </div>
-        <button onclick="refreshData()" class="p-3 bg-white rounded-2xl shadow-sm border text-slate-400 hover:text-rose-500 transition-all">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-        </button>
+        <div class="text-right">
+            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Estimasi Profit Hari Ini</p>
+            <h2 class="text-3xl font-black text-emerald-600 italic">Rp 4.500.000</h2>
+        </div>
     </header>
 
-    <section class="mb-8">
-        <div class="flex justify-between items-end mb-4 px-2">
-            <h2 class="font-black text-slate-800 italic uppercase">Stok Menipis</h2>
-            <span id="low-stock-count" class="bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full">0 ITEM</span>
+    <div class="grid grid-cols-3 gap-8">
+        <div class="ali-card p-10 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Valuasi Stok Barang</p>
+            <h3 class="text-2xl font-black italic">Rp 128.450.000</h3>
         </div>
-        <div id="low-stock-list" class="space-y-3">
-            </div>
-    </section>
-
-    <section>
-        <h2 class="font-black text-slate-800 italic uppercase mb-4 px-2">Transaksi Hari Ini</h2>
-        <div id="transaction-list" class="space-y-4">
-            </div>
-    </section>
-
-    <nav class="fixed bottom-6 left-6 right-6 bg-slate-900 text-white p-4 rounded-[2rem] flex justify-around items-center shadow-2xl border border-white/10 backdrop-blur-md">
-        <button onclick="refreshData()" class="text-rose-400 flex flex-col items-center">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span class="text-[8px] font-black mt-1 uppercase">Home</span>
-        </button>
-        <button onclick="window.open('https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit', '_blank')" class="text-slate-400 flex flex-col items-center">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span class="text-[8px] font-black mt-1 uppercase">Sheet</span>
-        </button>
-    </nav>
-
+    </div>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyjkm8RMgwOgXz9Pa3YOUhEl4CV1u2vAMBbjXtucJK-LaMn1SzSfphMin_6pzxiaGwhAA/exec"; // Masukkan URL Web App Anda
-
-        async function refreshData() {
-            try {
-                // Ambil Data Stok Menipis
-                const resLow = await fetch(`${API_URL}?action=getLowStock`);
-                const lowStock = await resLow.json();
-                renderLowStock(lowStock);
-
-                // Ambil Data Produk (Untuk simulasi transaksi hari ini)
-                // Catatan: Anda bisa menambah action 'getRecentSales' di GS jika ingin data lebih detail
-            } catch (e) { console.error(e); }
-        }
-
-        function renderLowStock(data) {
-            const list = document.getElementById('low-stock-list');
-            document.getElementById('low-stock-count').innerText = `${data.length} ITEM`;
-            
-            if(data.length === 0) {
-                list.innerHTML = '<div class="ali-card p-6 text-center text-slate-400 text-xs font-bold uppercase italic">Semua stok aman ✅</div>';
-                return;
-            }
-
-            list.innerHTML = data.map(item => `
-                <div class="ali-card p-5 flex justify-between items-center border-l-4 border-l-rose-500">
-                    <div>
-                        <h4 class="font-black text-slate-800 text-sm uppercase">${item.nama}</h4>
-                        <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stok Sekarang: ${item.stok}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-rose-500 font-black text-xs uppercase italic">Restock!</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.onload = refreshData;
+        window.onload = () => {
+            const nama = sessionStorage.getItem('ali_user_name');
+            if(nama) document.getElementById('nama-owner').innerText = nama;
+        };
     </script>
 </body>
 </html>
