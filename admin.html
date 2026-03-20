@@ -3,164 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI Admin - Stock Control</title>
+    <title>ALI POS - Admin Control</title>
+    
     <script>
-        // SATPAM: Memastikan hanya Admin yang bisa masuk
         const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
-        if (!session || session.role.toLowerCase().trim() !== 'admin') {
-            window.location.href = "index.html"; 
-        }
+        if (!session || session.role !== "Admin") { window.location.replace("index.html"); }
     </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
-        .table-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height: 100vh; overflow: hidden; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* Memastikan teks nama produk tidak terpotong */
+        .text-wrap-full { white-space: normal; word-break: break-word; overflow-wrap: break-word; }
     </style>
 </head>
-<body class="p-6 md:p-12">
-    <div class="max-w-6xl mx-auto">
+<body class="p-4">
+
+    <div class="h-full grid grid-cols-12 gap-4">
         
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-            <div>
-                <h1 class="text-3xl font-black italic tracking-tighter uppercase text-slate-800">
-                    ADMIN <span class="text-rose-500 underline decoration-4">STOCK</span>
-                </h1>
-                <p id="admin-info" class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic"></p>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="fetchAdminData()" class="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Refresh Data</button>
-                <button onclick="logout()" class="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all">Logout</button>
-            </div>
-        </header>
+        <main class="col-span-8 flex flex-col glass-panel rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <header class="p-8 border-b border-white/50 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-black italic tracking-tighter text-slate-900 uppercase">ALI <span class="text-rose-600">ADMIN</span></h1>
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">Status: <span class="text-rose-600">Super User</span></p>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <div class="text-right">
+                        <p class="text-[9px] font-black text-slate-400 uppercase">Omzet Hari Ini</p>
+                        <p id="total-omzet" class="text-xl font-black italic text-slate-900">Rp 0</p>
+                    </div>
+                    <button onclick="window.location.replace('kasir.html')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all">Mode Kasir</button>
+                </div>
+            </header>
 
-        <div class="bg-white rounded-[2.5rem] table-container border border-slate-100 overflow-hidden">
+            <div class="flex-1 overflow-y-auto custom-scroll p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black italic text-sm uppercase tracking-widest">Katalog & Stok</h3>
+                    <input type="text" id="search" onkeyup="filterAdmin()" placeholder="Cari barang..." class="bg-white/50 border-none px-6 py-3 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500 w-64 shadow-sm">
+                </div>
+                
+                <div id="admin-product-list" class="space-y-3">
+                    </div>
+            </div>
+        </main>
+
+        <aside class="col-span-4 flex flex-col gap-4">
             
-            <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Inventory Live Monitoring</span>
+            <section class="h-[45%] glass-panel rounded-[2.5rem] overflow-hidden flex flex-col shadow-xl border-rose-100">
+                <div class="p-6 bg-rose-600/10 border-b border-rose-200 flex justify-between items-center">
+                    <h3 class="font-black italic text-[10px] uppercase text-rose-600 tracking-widest italic">Peringatan Stok Rendah</h3>
+                    <span id="count-low" class="bg-rose-600 text-white text-[9px] px-2 py-1 rounded-full font-black">0</span>
                 </div>
-                <div class="relative w-full md:w-80">
-                    <input type="text" id="search" oninput="renderTable()" placeholder="Cari Nama Barang..." 
-                           class="w-full p-4 pl-6 bg-white border-2 border-slate-100 rounded-2xl text-xs font-bold outline-none focus:border-rose-500 transition-all">
+                <div id="low-stock-list" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-3">
+                    </div>
+            </section>
+
+            <section class="h-[55%] glass-panel rounded-[2.5rem] overflow-hidden flex flex-col shadow-xl">
+                <div class="p-6 border-b border-white/50">
+                    <h3 class="font-black italic text-[10px] uppercase text-slate-400 tracking-widest">Aktivitas Terbaru</h3>
                 </div>
-            </div>
+                <div id="transaction-log" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-3">
+                    </div>
+            </section>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50/80 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <tr>
-                            <th class="p-8">Produk & Barcode</th>
-                            <th>Kategori</th>
-                            <th>HPP / Modal</th>
-                            <th>Stok Saat Ini</th>
-                            <th class="text-right p-8">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-body" class="divide-y divide-slate-50 font-bold text-slate-700 text-sm">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <footer class="mt-8 text-center text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">
-            ALI POS System &copy; 2026
-        </footer>
+        </aside>
     </div>
 
     <script>
-        // PENTING: GANTI DENGAN URL /exec ANDA
-        const API_URL = "https://script.google.com/macros/s/AKfycbzngfS166yOXl0-zRa7lHC2pijAvpfgPWQ5UAKl3D4J8B9DjCh4OoYclmGGw6mn-0NJYg/exec"; 
-        let products = [];
+        const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec";
+        let allProducts = [];
 
-        // Inisialisasi Nama Admin
-        document.getElementById('admin-info').innerText = "Logged in as: " + session.nama;
+        window.onload = function() { loadAdminData(); };
 
-        async function fetchAdminData() {
-            const tbody = document.getElementById('product-body');
-            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Memuat data inventory...</td></tr>';
-            
+        async function loadAdminData() {
             try {
-                const res = await fetch(API_URL, { 
-                    method: "POST", 
-                    body: JSON.stringify({ action: "getAdminData" })
-                });
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" }) });
                 const r = await res.json();
-                
                 if(r.status === "success") {
-                    products = r.products;
-                    renderTable();
-                } else {
-                    alert("Gagal mengambil data dari server.");
+                    allProducts = r.products;
+                    renderAdminPanel(allProducts);
                 }
-            } catch (e) {
-                console.error("Error Fetching:", e);
-                alert("Koneksi gagal! Pastikan Apps Script sudah di-deploy.");
-            }
+            } catch(e) { console.error("Gagal Muat Data"); }
         }
 
-        function renderTable() {
-            const search = document.getElementById('search').value.toLowerCase();
-            const tbody = document.getElementById('product-body');
-            
-            // Filter data berdasarkan nama (Kolom ke-2 / Indeks 1)
-            const filtered = products.filter(p => p[1].toLowerCase().includes(search));
+        function renderAdminPanel(products) {
+            const container = document.getElementById('admin-product-list');
+            const lowStockContainer = document.getElementById('low-stock-list');
+            let lowCount = 0;
+            let omzet = 0; // Contoh: nanti ditarik dari data transaksi di GS
 
-            if(filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-rose-400 italic font-bold text-xs uppercase tracking-widest">Data barang tidak ditemukan</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(p => {
-                // Menyesuaikan indeks dengan screenshot Spreadsheet Produk Anda:
-                // p[0] = Barcode
-                // p[1] = Nama Produk
-                // p[2] = Kategori
-                // p[3] = Harga Modal (D)
-                // p[5] = Stok Minimal (F)
-                // p[6] = Stok Sekarang (G)
-                // p[7] = Satuan (H)
+            // Render Produk Utama
+            container.innerHTML = products.map(p => {
+                const stok = Number(p[7]);
+                const harga = Number(p[6]).toLocaleString('id-ID');
                 
-                const stokSekarang = Number(p[6]) || 0;
-                const stokMinimal = Number(p[5]) || 0;
-                const hargaModal = Number(p[3]) || 0;
-                const isKritis = stokSekarang <= stokMinimal;
-
                 return `
-                <tr class="hover:bg-slate-50 transition-all group">
-                    <td class="p-8">
-                        <div class="text-slate-900 font-extrabold group-hover:text-rose-500 transition-colors">${p[1]}</div>
-                        <div class="text-[9px] text-slate-300 font-black uppercase tracking-tighter">${p[0]}</div>
-                    </td>
-                    <td>
-                        <span class="bg-slate-100 text-slate-400 px-3 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest">
-                            ${p[2]}
-                        </span>
-                    </td>
-                    <td class="text-slate-400 text-xs tracking-tighter italic">
-                        Rp ${hargaModal.toLocaleString()}
-                    </td>
-                    <td class="text-base ${isKritis ? 'text-rose-500 font-black' : 'text-slate-800'}">
-                        ${stokSekarang} <span class="text-[10px] text-slate-300 font-normal uppercase">${p[7]}</span>
-                    </td>
-                    <td class="text-right p-8 italic">
-                        ${isKritis 
-                            ? '<span class="bg-rose-100 text-rose-500 px-4 py-2 rounded-full text-[9px] font-black uppercase animate-pulse border border-rose-200">Wajib Re-Stock</span>' 
-                            : '<span class="bg-emerald-50 text-emerald-500 px-4 py-2 rounded-full text-[9px] font-black uppercase opacity-60">Stok Aman</span>'}
-                    </td>
-                </tr>
-                `;
+                <div class="flex items-center justify-between p-5 bg-white/60 border border-white rounded-[1.5rem] shadow-sm group">
+                    <div class="flex-1 pr-4">
+                        <p class="text-xs font-black text-slate-800 uppercase leading-normal text-wrap-full">${p[1]}</p>
+                        <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Barcode: ${p[0]} | Rp ${harga}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Stok Aktif</p>
+                            <p class="text-sm font-black ${stok < 5 ? 'text-rose-600' : 'text-slate-900'}">${stok}</p>
+                        </div>
+                        <button onclick="quickAddStock('${p[0]}')" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-rose-600 transition-all">+</button>
+                    </div>
+                </div>`;
             }).join('');
+
+            // Filter Stok Menipis (List Sendiri)
+            const lowStockItems = products.filter(p => Number(p[7]) < 5);
+            document.getElementById('count-low').innerText = lowStockItems.length;
+            
+            lowStockContainer.innerHTML = lowStockItems.length ? lowStockItems.map(p => `
+                <div class="p-4 bg-white/40 border border-rose-200 rounded-2xl flex justify-between items-center">
+                    <p class="text-[10px] font-black text-slate-700 uppercase leading-tight flex-1 pr-2 text-wrap-full">${p[1]}</p>
+                    <span class="text-rose-600 font-black text-xs">${p[7]}</span>
+                </div>
+            `).join('') : `<p class="text-[10px] italic text-center text-slate-400 mt-10">Stok masih aman</p>`;
         }
 
-        function logout() {
-            sessionStorage.removeItem('ali_session_v4');
-            window.location.href = "index.html";
+        function filterAdmin() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = allProducts.filter(p => p[1].toLowerCase().includes(query));
+            renderAdminPanel(filtered);
         }
 
-        // Jalankan fetch saat halaman dimuat
-        window.onload = fetchAdminData;
+        async function quickAddStock(barcode) {
+            const qty = prompt("Masukkan jumlah stok tambahan:");
+            if(!qty || isNaN(qty)) return;
+            // Di sini Anda bisa menambahkan fetch ke GS untuk action: "updateStock"
+            alert("Proses tambah stok " + qty + " untuk " + barcode);
+        }
     </script>
 </body>
 </html>
