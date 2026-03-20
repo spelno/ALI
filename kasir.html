@@ -5,34 +5,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow: hidden; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 14px; border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.3s; }
         .nav-active { background: #1e293b !important; color: white !important; }
         .thermal-font { font-family: 'Courier New', Courier, monospace; line-height: 1.2; }
+        .out-of-stock { background-color: #f1f5f9 !important; border-color: #e2e8f0 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.6; }
+        #custom-toast { transform: translateX(-50%) translateY(100px); transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); position: fixed; bottom: 40px; left: 50%; z-index: 300; }
+        #custom-toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden" onclick="closeReceipt()">
+<body class="h-screen flex" onclick="closeReceipt()">
 
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50 shadow-sm" onclick="event.stopPropagation()">
+    <div id="custom-toast" class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
+        <div class="bg-rose-500 p-1 rounded-full"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="4" d="M6 18L18 6M6 6l12 12"></path></svg></div>
+        <span id="toast-msg" class="font-bold text-sm uppercase tracking-tight"></span>
+    </div>
+
+    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50">
         <div class="bg-slate-800 p-2 rounded-lg mb-8">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         </div>
         <nav class="flex flex-col gap-4 w-full px-2">
-            <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Katalog</span>
-            </div>
-            <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Stok</span>
-            </div>
+            <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Katalog</span></div>
+            <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Stok</span></div>
         </nav>
     </aside>
 
-    <main class="flex-1 flex flex-col p-8 overflow-hidden bg-white relative" onclick="event.stopPropagation()">
+    <main class="flex-1 flex flex-col p-8 bg-white relative">
         <div id="view-pos" class="flex flex-col h-full">
             <header class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic">Kasir</h2>
+                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Kasir</h2>
                 <h1 id="total-display" class="text-5xl font-black text-slate-800 tracking-tighter">Rp 0</h1>
             </header>
             <div class="flex-1 overflow-y-auto border-y border-slate-50 py-4" id="cart-list"></div>
@@ -45,35 +47,40 @@
             </div>
             <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <span id="change-display" class="text-2xl font-black text-emerald-500 italic">Rp 0</span>
-                <button onclick="handleTransaction()" id="btn-pay" class="bg-slate-800 text-white font-black px-12 py-5 rounded-2xl hover:bg-black uppercase italic">Simpan & Cetak</button>
+                <button onclick="handleTransaction()" id="btn-pay" class="bg-slate-800 text-white font-black px-12 py-5 rounded-2xl hover:bg-black uppercase italic transition-all">Simpan & Cetak</button>
             </div>
         </div>
 
         <div id="view-inventory" class="hidden flex flex-col h-full bg-white">
             <header class="mb-6 flex justify-between items-end">
-                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic">Inventory</h2>
+                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Inventory</h2>
                 <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none">
             </header>
             <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl"><table class="w-full text-left"><thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-100"><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Barcode</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Produk</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-center">Stok</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-right">Harga</th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-50"></tbody></table></div>
         </div>
     </main>
 
-    <aside id="panel-catalog-aside" class="w-[340px] bg-white border-l flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+    <aside id="panel-catalog-aside" class="w-[340px] bg-white border-l flex flex-col overflow-hidden">
         <div class="p-6 border-b font-bold text-xs uppercase tracking-widest text-slate-400 italic">Katalog Barang</div>
         <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-slate-50/30"></div>
     </aside>
 
     <div id="receipt-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] items-center justify-center p-4">
-        <div class="bg-white p-6 shadow-2xl thermal-font text-slate-800" id="thermal-paper">
-            <div id="receipt-content"></div>
-        </div>
+        <div class="bg-white p-6 shadow-2xl thermal-font text-slate-800" id="thermal-paper"><div id="receipt-content"></div></div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyHvPbES8n9vh5N--Kdbmk6aG5Uct7w-HLID9LwQpnfdPAWO4YIgV6T5oI1MPI_XZ5RFw/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbwr0bN22DmuTYQBtFKF3gJM_Q1DlIIqDYA6Gjc0E5qGirk34s9qmAsw1E_keRh7dbx_hw/exec"; 
         let products = [], cart = [], settings = {};
 
         window.onload = async () => { await fetchSettings(); await fetchData(); };
+
+        function notify(msg) {
+            const toast = document.getElementById('custom-toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
 
         async function fetchSettings() {
             try { const res = await fetch(`${API_URL}?action=getSettings`); settings = await res.json(); } catch (e) {}
@@ -96,9 +103,16 @@
 
         function addToCart(bc) {
             const p = products.find(x => x.Barcode.toString() === bc.toString());
-            if(!p) return;
+            if(!p) { notify("BARCODE TIDAK ADA!"); return; }
+            if(p.Stok <= 0) { notify(`STOK ${p.Nama_Barang} HABIS!`); return; }
+            
             const existing = cart.find(c => c.Barcode.toString() === bc.toString());
-            if(existing) { existing.Qty += 1; } else { cart.push({...p, Qty: 1}); }
+            if(existing) {
+                if(existing.Qty >= p.Stok) { notify(`MAKSIMAL STOK HANYA ${p.Stok}!`); return; }
+                existing.Qty += 1;
+            } else {
+                cart.push({...p, Qty: 1});
+            }
             updateUI();
         }
 
@@ -125,16 +139,19 @@
         }
 
         function renderCatalog() {
-            document.getElementById('catalog-grid').innerHTML = products.map(p => `
-                <button onclick="addToCart('${p.Barcode}')" class="p-4 bg-white border border-slate-100 rounded-2xl text-left hover:border-slate-800 transition-all shadow-sm">
+            document.getElementById('catalog-grid').innerHTML = products.map(p => {
+                const isEmpty = p.Stok <= 0;
+                return `
+                <button onclick="${isEmpty ? '' : `addToCart('${p.Barcode}')`}" 
+                    class="p-4 bg-white border border-slate-100 rounded-2xl text-left transition-all shadow-sm ${isEmpty ? 'out-of-stock' : 'hover:border-slate-800'}">
                     <p class="font-bold text-[10px] uppercase h-8 overflow-hidden mb-1 leading-tight">${p.Nama_Barang}</p>
-                    <p class="font-black text-[11px] italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
-                </button>
-            `).join('');
+                    <p class="font-black text-[11px] italic">${isEmpty ? 'HABIS' : `Rp ${p.Harga_Jual.toLocaleString()}`}</p>
+                </button>`;
+            }).join('');
         }
 
         function renderInventory(data = products) {
-            document.getElementById('inventory-table-body').innerHTML = data.map(p => `<tr class="hover:bg-slate-50"><td class="p-5 text-[10px] font-bold text-slate-400">${p.Barcode}</td><td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td><td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td><td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td></tr>`).join('');
+            document.getElementById('inventory-table-body').innerHTML = data.map(p => `<tr class="hover:bg-slate-50"><td class="p-5 text-[10px] font-bold text-slate-400">${p.Barcode}</td><td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td><td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok <= p.Stok_Minimal ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td><td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td></tr>`).join('');
         }
 
         function filterInventory() {
@@ -155,14 +172,13 @@
                     showThermalReceipt({ invoice: result.invoice, items: [...cart], total, cash, change: Math.max(0, cash - total), date: new Date().toLocaleString('id-ID') });
                     cart = []; updateUI(); document.getElementById('cash-in').value = ''; fetchData();
                 }
-            } catch (e) { alert("Simpan Gagal!"); }
+            } catch (e) { notify("GAGAL TERHUBUNG!"); }
             finally { btn.disabled = false; btn.innerText = "Simpan & Cetak"; }
         }
 
         function showThermalReceipt(d) {
             const paper = document.getElementById('thermal-paper');
             paper.style.width = (settings.paperWidth == 80) ? "380px" : "280px";
-            
             document.getElementById('receipt-content').innerHTML = `
                 <div class="text-center mb-4">
                     <p class="font-black text-xl uppercase">${settings.storeName}</p>
@@ -177,7 +193,7 @@
                     ${d.items.map(i => `<div><p class="uppercase font-bold">${i.Nama_Barang}</p><div class="flex justify-between text-[10px] italic"><span>${i.Qty} x ${i.Harga_Jual.toLocaleString()}</span><span>${(i.Qty*i.Harga_Jual).toLocaleString()}</span></div></div>`).join('')}
                 </div>
                 <div class="border-t border-dashed border-slate-300 pt-3 space-y-1 text-[11px]">
-                    <p class="flex justify-between font-black"><span>TOTAL</span> <span>Rp ${d.total.toLocaleString()}</span></p>
+                    <p class="flex justify-between font-black uppercase"><span>TOTAL</span> <span>Rp ${d.total.toLocaleString()}</span></p>
                     <p class="flex justify-between font-bold"><span>KEMBALI</span> <span>Rp ${d.change.toLocaleString()}</span></p>
                 </div>
                 <div class="text-center mt-6 text-[10px] font-bold uppercase border-t border-dashed border-slate-200 pt-4">${settings.footer}</div>
