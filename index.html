@@ -21,42 +21,24 @@
         <div class="space-y-4">
             <input type="text" id="user" placeholder="Username" class="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 outline-none focus:border-rose-500 font-bold transition-all">
             <input type="password" id="pass" placeholder="Password" class="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 outline-none focus:border-rose-500 font-bold transition-all">
-            <button id="btn-login" onclick="prosesLogin()" class="w-full ali-gradient text-white font-black py-5 rounded-3xl shadow-xl shadow-rose-500/20 uppercase italic tracking-widest transition-all active:scale-95">Masuk Dashboard</button>
+            <button id="btn-login" onclick="prosesLogin()" class="w-full ali-gradient text-white font-black py-5 rounded-3xl shadow-xl shadow-rose-500/20 uppercase italic tracking-widest transition-all">Masuk Dashboard</button>
         </div>
     </div>
-
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz-JIFWGlLyvXGr928CzfCsyWOTIkdzp8T4qGWaLDSUQRJ-kOzek9jn4vqT3NVTcvg7ug/exec"; // GANTI DENGAN LINK .exec ANDA
-
+        const API_URL = "https://script.google.com/macros/s/AKfycbxrgdByXykW5NWaOLm6FgOMMKydJQE6G9v6By_aotRst3FV7TGEjnR7fv-8RDhtUYVnwQ/exec";
         async function prosesLogin() {
             const u = document.getElementById('user').value;
             const p = document.getElementById('pass').value;
-            const b = document.getElementById('btn-login');
-
-            if(!u || !p) return alert("Silakan isi Username dan Password!");
-
-            b.innerText = "VERIFIKASI...";
-            b.disabled = true;
-
+            if(!u || !p) return alert("Isi data!");
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", username: u, password: p }) });
                 const r = await res.json();
-
                 if (r.status === "success") {
                     sessionStorage.setItem('ali_user_name', r.user.nama);
                     window.location.href = API_URL + "?action=" + r.user.role;
-                } else {
-                    alert(r.message);
-                    b.innerText = "Masuk Dashboard";
-                    b.disabled = false;
-                }
-            } catch (err) {
-                alert("Koneksi Error!");
-                b.innerText = "Masuk Dashboard";
-                b.disabled = false;
-            }
+                } else { alert(r.message); }
+            } catch (err) { alert("Koneksi Error!"); }
         }
-        document.onkeydown = (e) => { if(e.key === "Enter") prosesLogin(); };
     </script>
 </body>
 </html>
