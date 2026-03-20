@@ -7,145 +7,152 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; color: #1e293b; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow: hidden; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #catalog-panel { transition: width 0.4s ease, opacity 0.3s ease; }
-        .catalog-closed { width: 0; opacity: 0; overflow: hidden; pointer-events: none; }
-        .catalog-open { width: 400px; opacity: 1; border-left: 2px solid #f1f5f9; }
+        #catalog-panel { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 0; opacity: 0; pointer-events: none; }
+        #catalog-panel.open { width: 400px; opacity: 1; pointer-events: auto; border-left: 2px solid #e2e8f0; }
+        .method-btn.active { border-color: #e11d48; background: #fff1f2; color: #e11d48; }
     </style>
 </head>
 <body class="h-screen flex">
 
     <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-10 z-[100] shadow-sm">
-        <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg">A</div>
+        <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg text-xl">A</div>
         <nav class="flex flex-col gap-6">
             <div class="p-4 rounded-2xl bg-rose-600 text-white shadow-lg cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             </div>
-            <button onclick="toggleCatalog()" class="p-4 rounded-2xl text-slate-400 hover:bg-slate-100 hover:text-rose-600 transition-all">
+            <button onclick="toggleCatalog()" class="p-4 rounded-2xl text-slate-400 hover:bg-slate-100 hover:text-rose-600 transition-all shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             </button>
         </nav>
-        <button onclick="logout()" class="mt-auto p-4 text-rose-500 font-black text-[10px] uppercase italic">Keluar</button>
+        <button onclick="logout()" class="mt-auto p-4 text-rose-500 font-black text-[10px] uppercase italic tracking-widest">Keluar</button>
     </aside>
 
     <main class="flex-1 flex flex-col p-8 bg-slate-50 overflow-hidden">
         <header class="flex justify-between items-center mb-6">
             <h2 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter">Shopping <span class="text-rose-600">Cart</span></h2>
-            <div id="status-koneksi" class="px-4 py-2 rounded-full bg-emerald-50 text-emerald-500 text-[10px] font-black uppercase flex items-center gap-2">
-                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> Kasir: <span id="cashier-name">...</span>
+            <div class="px-4 py-2 rounded-full bg-white shadow-sm text-[10px] font-black uppercase flex items-center gap-2 border">
+                Kasir: <span id="cashier-name" class="text-rose-600">...</span>
             </div>
         </header>
 
-        <input type="text" id="barcode-scan" onkeydown="handleBarcode(event)" placeholder="Ketik nama atau scan barcode..." 
+        <input type="text" id="barcode-scan" onkeydown="handleBarcode(event)" placeholder="Scan Barcode atau ketik nama barang..." 
             class="w-full p-6 bg-white border-2 border-slate-100 rounded-[2rem] font-bold text-xl outline-none focus:border-rose-500 shadow-sm mb-6">
 
         <div id="cart-list" class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
             </div>
 
-        <div class="mt-8 p-10 bg-white rounded-[3rem] shadow-2xl flex justify-between items-center border">
+        <div class="mt-8 p-10 bg-white rounded-[3rem] shadow-2xl flex justify-between items-center border border-slate-100">
             <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Bayar</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Total Tagihan</p>
                 <p id="total-amount" class="text-5xl font-black italic text-rose-600 tracking-tighter">Rp 0</p>
             </div>
-            <button onclick="openPaymentModal()" class="ali-gradient text-white px-16 py-6 rounded-[2rem] font-black uppercase italic tracking-widest shadow-xl active:scale-95 transition-all">
+            <button onclick="openPaymentModal()" class="ali-gradient text-white px-16 py-6 rounded-[2rem] font-black uppercase italic tracking-widest shadow-xl active:scale-95 transition-all text-lg">
                 Bayar (F9)
             </button>
         </div>
     </main>
 
-    <section id="catalog-panel" class="catalog-closed bg-white flex flex-col h-screen shadow-2xl">
-        <div class="p-8 border-b flex justify-between items-center bg-slate-50">
-            <h3 class="font-black uppercase italic text-sm">Katalog Barang</h3>
-            <button onclick="toggleCatalog()" class="text-slate-400 hover:text-rose-600">✕</button>
+    <section id="catalog-panel" class="bg-white flex flex-col h-screen shadow-2xl z-50 overflow-hidden">
+        <div class="p-8 border-b flex justify-between items-center bg-slate-50/50">
+            <h3 class="font-black uppercase italic tracking-tighter text-slate-800">Katalog</h3>
+            <button onclick="toggleCatalog()" class="text-slate-400">✕</button>
         </div>
-        <div class="p-4 border-b">
-            <input type="text" id="search-catalog" oninput="filterKatalog()" placeholder="Cari..." class="w-full p-3 bg-slate-100 rounded-xl text-sm font-bold border-none outline-none">
-        </div>
-        <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            </div>
+        <div class="p-4"><input type="text" id="search-catalog" oninput="filterKatalog()" placeholder="Cari..." class="w-full p-4 bg-slate-100 rounded-2xl font-bold text-sm border-none outline-none"></div>
+        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"></div>
     </section>
 
-    <div id="modal-pembayaran" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md p-10 rounded-[3.5rem] shadow-2xl space-y-8">
+    <div id="modal-pay" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-10 rounded-[4rem] shadow-2xl space-y-8">
             <div class="text-center">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Tagihan</p>
-                <h2 id="pay-total-display" class="text-4xl font-black text-slate-800 italic">Rp 0</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Metode Pembayaran</p>
+                <h2 id="pay-total-display" class="text-4xl font-black text-slate-800 italic tracking-tighter">Rp 0</h2>
             </div>
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-4">Uang Tunai (Cash)</label>
-                    <input type="number" id="input-tunai" oninput="hitungKembalian()" class="w-full p-6 bg-slate-100 border-none rounded-[2rem] text-2xl font-black text-emerald-600 text-center outline-none">
-                </div>
-                <div class="bg-rose-50 p-6 rounded-[2rem] text-center border border-rose-100">
-                    <p class="text-[10px] font-black text-rose-400 uppercase mb-1">Kembalian</p>
-                    <h3 id="txt-kembalian" class="text-3xl font-black text-rose-600 italic">Rp 0</h3>
-                </div>
-            </div>
+            
             <div class="grid grid-cols-2 gap-4">
-                <button onclick="closePaymentModal()" class="py-5 bg-slate-100 text-slate-400 rounded-[2rem] font-black uppercase italic text-[10px]">Batal</button>
-                <button onclick="submitTransaksi()" id="btn-final" class="ali-gradient py-5 text-white rounded-[2rem] font-black uppercase italic text-[10px] shadow-lg shadow-rose-200">Cetak & Simpan</button>
+                <button onclick="setMethod('Tunai')" id="btn-cash" class="method-btn active p-5 border-2 rounded-3xl font-black uppercase italic text-[10px] transition-all">💵 Tunai</button>
+                <button onclick="setMethod('QRIS')" id="btn-qris" class="method-btn p-5 border-2 rounded-3xl font-black uppercase italic text-[10px] transition-all">📱 QRIS / TRF</button>
+            </div>
+
+            <div id="cash-section" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-6 italic">Uang Diterima</label>
+                    <input type="number" id="input-cash" oninput="calcChange()" placeholder="0" 
+                        class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] text-3xl font-black text-emerald-600 text-center outline-none">
+                </div>
+                <div class="bg-rose-50 p-6 rounded-[2.5rem] text-center border border-rose-100">
+                    <p class="text-[10px] font-black text-rose-400 uppercase mb-1">Kembalian</p>
+                    <h3 id="txt-change" class="text-3xl font-black text-rose-600 italic tracking-tighter">Rp 0</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="closePaymentModal()" class="py-5 bg-slate-100 text-slate-500 rounded-[2rem] font-black uppercase italic text-[10px]">Batal</button>
+                <button onclick="submitTransaction()" id="btn-finish" class="ali-gradient py-5 text-white rounded-[2rem] font-black uppercase italic text-[10px] shadow-lg shadow-rose-200">Selesaikan</button>
             </div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAWigC7Nut3LCbGgOFMzKAZuvQPgRs3bNEw9IGGVc2KHy5UVsK4Wttq5CQnHXyiax3BA/exec"; 
-        let products = [], cart = [], storeSettings = {};
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiNW5vNecg58Ygss7QXbzNgPN7g1-Vv3y406lgQW07GytmpCwVSHqqvDuksY1QyEickA/exec"; 
+        let products = [], cart = [], currentMethod = "Tunai";
         let session = JSON.parse(localStorage.getItem('ali_session'));
 
         window.onload = async () => {
             if (!session) window.location.href = "index.html";
             document.getElementById('cashier-name').innerText = session.nama;
-            await loadInitialData();
+            await loadProducts();
             document.getElementById('barcode-scan').focus();
         };
 
-        async function loadInitialData() {
+        async function loadProducts() {
             try {
-                const [pRes, sRes] = await Promise.all([
-                    fetch(SCRIPT_URL + "?action=products"),
-                    fetch(SCRIPT_URL + "?action=settings")
-                ]);
-                products = await pRes.json();
-                storeSettings = await sRes.json();
-                renderKatalog(products);
-            } catch (e) { alert("Gagal sinkron data!"); }
+                const res = await fetch(SCRIPT_URL + "?action=products");
+                products = await res.json();
+                renderCatalog(products);
+            } catch (e) { alert("Sinkronisasi gagal!"); }
         }
 
-        function toggleCatalog() {
-            const el = document.getElementById('catalog-panel');
-            el.classList.toggle('catalog-closed');
-            el.classList.toggle('catalog-open');
+        function setMethod(method) {
+            currentMethod = method;
+            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+            if(method === 'Tunai') {
+                document.getElementById('btn-cash').classList.add('active');
+                document.getElementById('cash-section').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-qris').classList.add('active');
+                document.getElementById('cash-section').classList.add('hidden');
+            }
         }
 
         function handleBarcode(e) {
             if (e.key === "Enter") {
-                const val = e.target.value;
-                const p = products.find(i => i.Barcode == val || i.Nama_Barang.toLowerCase() == val.toLowerCase());
-                if (p) { addItem(p); e.target.value = ""; }
+                const val = e.target.value.toLowerCase();
+                const p = products.find(i => i.Barcode == val || i.Nama_Barang.toLowerCase().includes(val));
+                if (p) { addItem(p); e.target.value = ""; } else { alert("Barang tidak ada!"); }
             }
         }
 
         function addItem(p) {
-            const existing = cart.find(i => i.Barcode == p.Barcode);
-            if (existing) { existing.Qty++; } else { cart.push({ ...p, Qty: 1 }); }
+            const exist = cart.find(i => i.Barcode == p.Barcode);
+            if (exist) { exist.Qty++; } else { cart.push({ ...p, Qty: 1 }); }
             renderCart();
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             list.innerHTML = cart.map((item, idx) => `
-                <div class="flex justify-between items-center bg-white p-6 rounded-3xl border shadow-sm">
+                <div class="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
                     <div class="flex gap-4 items-center">
-                        <div class="bg-rose-50 text-rose-600 w-10 h-10 flex items-center justify-center rounded-xl font-black italic">${item.Qty}</div>
-                        <div><p class="font-black uppercase italic text-sm">${item.Nama_Barang}</p><p class="text-[9px] text-slate-400 font-bold">${item.Barcode}</p></div>
+                        <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center font-black italic text-sm">${item.Qty}</div>
+                        <div><p class="font-black uppercase italic text-xs">${item.Nama_Barang}</p></div>
                     </div>
                     <div class="flex items-center gap-6">
-                        <span class="font-black italic text-lg text-slate-800">Rp ${(item.Harga_Jual * item.Qty).toLocaleString()}</span>
-                        <button onclick="removeItem(${idx})" class="text-slate-300 hover:text-rose-600 font-bold">✕</button>
+                        <span class="font-black italic text-lg tracking-tighter">Rp ${(item.Harga_Jual * item.Qty).toLocaleString()}</span>
+                        <button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500 font-bold">✕</button>
                     </div>
                 </div>
             `).join('');
@@ -153,58 +160,56 @@
             document.getElementById('total-amount').innerText = "Rp " + total.toLocaleString();
         }
 
-        function renderKatalog(data) {
+        function renderCatalog(data) {
             document.getElementById('catalog-grid').innerHTML = data.map(p => `
-                <div onclick="addItem(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-rose-500 cursor-pointer transition-all">
-                    <p class="font-black text-[11px] uppercase italic text-slate-800">${p.Nama_Barang}</p>
-                    <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase">Rp ${p.Harga_Jual.toLocaleString()} | Stok: ${p.Stok}</p>
+                <div onclick="addItem(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="p-5 bg-slate-50 rounded-3xl border-2 border-transparent hover:border-rose-500 cursor-pointer transition-all">
+                    <p class="font-black text-xs uppercase italic text-slate-800">${p.Nama_Barang}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Rp ${p.Harga_Jual.toLocaleString()} | Stok: ${p.Stok}</p>
                 </div>
             `).join('');
         }
 
-        function filterKatalog() {
-            const q = document.getElementById('search-catalog').value.toLowerCase();
-            renderKatalog(products.filter(p => p.Nama_Barang.toLowerCase().includes(q) || p.Barcode.toString().includes(q)));
-        }
-
-        // --- PEMBAYARAN ---
         function openPaymentModal() {
             if (cart.length === 0) return;
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
             document.getElementById('pay-total-display').innerText = "Rp " + total.toLocaleString();
-            document.getElementById('modal-pembayaran').classList.remove('hidden');
-            document.getElementById('input-tunai').focus();
+            document.getElementById('modal-pay').classList.remove('hidden');
+            document.getElementById('input-cash').focus();
         }
 
-        function closePaymentModal() { document.getElementById('modal-pembayaran').classList.add('hidden'); }
-
-        function hitungKembalian() {
+        function calcChange() {
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const tunai = document.getElementById('input-tunai').value || 0;
-            const kembalian = tunai - total;
-            document.getElementById('txt-kembalian').innerText = "Rp " + (kembalian < 0 ? 0 : kembalian).toLocaleString();
+            const cash = document.getElementById('input-cash').value || 0;
+            const change = cash - total;
+            document.getElementById('txt-change').innerText = "Rp " + (change < 0 ? 0 : change).toLocaleString();
         }
 
-        async function submitTransaksi() {
+        async function submitTransaction() {
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const tunai = document.getElementById('input-tunai').value;
-            if (tunai < total) return alert("Uang tunai kurang!");
+            const cash = document.getElementById('input-cash').value;
+            if (currentMethod === 'Tunai' && cash < total) return alert("Uang kurang!");
 
-            const btn = document.getElementById('btn-final');
-            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
+            const btn = document.getElementById('btn-finish');
+            btn.innerText = "PROSES..."; btn.disabled = true;
 
             try {
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: "saveTransaction", cart: cart, cashierName: session.nama })
+                    body: JSON.stringify({ action: "saveTransaction", cart: cart, cashierName: session.nama, method: currentMethod })
                 });
-                const r = await res.json();
-                if(r.status === "success") { alert("Transaksi Berhasil!"); location.reload(); }
-            } catch(e) { alert("Error!"); btn.innerText = "Cetak & Simpan"; btn.disabled = false; }
+                if(res.ok) { alert("Berhasil!"); location.reload(); }
+            } catch(e) { alert("Error!"); btn.innerText = "Selesaikan"; btn.disabled = false; }
         }
 
+        function filterKatalog() {
+            const q = document.getElementById('search-catalog').value.toLowerCase();
+            renderCatalog(products.filter(p => p.Nama_Barang.toLowerCase().includes(q)));
+        }
+        function toggleCatalog() { document.getElementById('catalog-panel').classList.toggle('open'); }
         function removeItem(i) { cart.splice(i, 1); renderCart(); }
         function logout() { localStorage.clear(); window.location.href = "index.html"; }
+        function closePaymentModal() { document.getElementById('modal-pay').classList.add('hidden'); }
+        document.onkeydown = (e) => { if(e.key === "F9") openPaymentModal(); };
     </script>
 </body>
 </html>
