@@ -2,38 +2,154 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>ALI - Owner Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI POS - Owner Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfbf7; }
-        .owner-header { border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px; }
-        .ali-card { background: white; border-radius: 2rem; border: 1px solid rgba(212,175,55,0.2); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
+        .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="p-8">
-    <header class="owner-header flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">Welcome Back, <span id="nama-owner" style="color:#b8860b">Chief</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Executive Overview | Notes of OD System</p>
-        </div>
-        <div class="text-right">
-            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Estimasi Profit Hari Ini</p>
-            <h2 class="text-3xl font-black text-emerald-600 italic">Rp 4.500.000</h2>
-        </div>
-    </header>
+<body class="flex h-screen overflow-hidden">
 
-    <div class="grid grid-cols-3 gap-8">
-        <div class="ali-card p-10 shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Valuasi Stok Barang</p>
-            <h3 class="text-2xl font-black italic">Rp 128.450.000</h3>
+    <aside class="w-24 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-8 gap-8 z-50">
+        <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-rose-500/20">A</div>
+        <div class="p-4 rounded-2xl ali-gradient text-white flex items-center justify-center shadow-xl">
+            <span class="text-[10px] font-black uppercase italic tracking-widest text-center leading-none">Stat</span>
         </div>
-    </div>
+        <button onclick="logout()" class="mt-auto p-4 text-rose-500 font-black text-[10px] uppercase italic hover:scale-110 transition-all">Keluar</button>
+    </aside>
+
+    <main class="flex-1 flex flex-col p-10 overflow-hidden">
+        
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2">Executive Summary</p>
+                <h2 class="text-4xl font-black uppercase italic tracking-tighter">Halo, <span class="text-rose-500">Boss OD</span></h2>
+            </div>
+            <div class="text-right">
+                <p id="current-date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic font-mono"></p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden">
+            
+            <div class="lg:col-span-2 flex flex-col gap-8">
+                <div class="glass-card p-10 rounded-[3rem] relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 ali-gradient blur-[80px] opacity-30"></div>
+                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-4">Omzet Hari Ini</p>
+                    <h1 id="today-sales" class="text-7xl font-black tracking-tighter italic">Rp 0</h1>
+                    <div class="mt-8 flex gap-4">
+                        <span class="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">Sistem Aktif</span>
+                    </div>
+                </div>
+
+                <div class="glass-card flex-1 rounded-[3rem] p-10 flex flex-col overflow-hidden">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6 flex justify-between">
+                        <span>Peringatan Stok Rendah (≤ 5)</span>
+                        <span id="low-count" class="text-rose-500">0 Item</span>
+                    </h3>
+                    <div id="low-stock-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
+                        </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-8">
+                <div class="glass-card p-10 rounded-[3rem] flex-1">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-8 border-b border-white/5 pb-4 italic">Info Toko</h3>
+                    <div id="store-info" class="space-y-6">
+                        <div class="group">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Nama Bisnis</p>
+                            <p id="info-name" class="font-black italic uppercase tracking-tight text-lg">-</p>
+                        </div>
+                        <div class="group">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Alamat Operasional</p>
+                            <p id="info-addr" class="font-bold text-slate-300 text-sm">-</p>
+                        </div>
+                        <div class="group">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Format Struk</p>
+                            <p id="info-paper" class="font-black italic text-rose-500 text-sm uppercase">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="location.reload()" class="w-full bg-white text-slate-900 font-black py-6 rounded-[2rem] shadow-xl hover:bg-rose-500 hover:text-white transition-all uppercase italic tracking-widest text-xs">
+                    Refresh Data
+                </button>
+            </div>
+
+        </div>
+
+        <footer class="mt-8 text-center">
+            <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest italic">Notes of OD &bull; Integrated POS Intelligence &bull; 2026</p>
+        </footer>
+    </main>
+
     <script>
+        /** 1. SECURITY & SESSION **/
+        const SCRIPT_URL = "<?= scriptUrl ?>";
+        let sessionData = JSON.parse(localStorage.getItem('ali_user_session'));
+
         window.onload = () => {
-            const nama = sessionStorage.getItem('ali_user_name');
-            if(nama) document.getElementById('nama-owner').innerText = nama;
+            if (!sessionData || sessionData.role !== 'owner') {
+                alert("Akses Dibatasi Khusus Owner!");
+                logout();
+                return;
+            }
+            
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            loadOwnerDashboard();
         };
+
+        /** 2. LOAD DATA KHUSUS OWNER **/
+        function loadOwnerDashboard() {
+            // Ambil Statistik Penjualan & Stok Rendah (Fungsi khusus di Code.gs)
+            google.script.run.withSuccessHandler(res => {
+                document.getElementById('today-sales').innerText = "Rp " + res.todaySales.toLocaleString();
+                renderLowStock(res.lowStock);
+            }).getOwnerStats();
+
+            // Ambil Info Toko (B2-B5)
+            google.script.run.withSuccessHandler(s => {
+                document.getElementById('info-name').innerText = s.storeName;
+                document.getElementById('info-addr').innerText = s.address;
+                document.getElementById('info-paper').innerText = "Thermal " + s.paperSize;
+            }).getGlobalData("settings");
+        }
+
+        /** 3. RENDER STOK RENDAH **/
+        function renderLowStock(data) {
+            const list = document.getElementById('low-stock-list');
+            document.getElementById('low-count').innerText = data.length + " Item";
+            
+            if(data.length === 0) {
+                list.innerHTML = `<div class="p-8 text-center text-slate-500 italic text-xs uppercase font-bold border border-dashed border-slate-800 rounded-3xl">Semua stok aman, Bos!</div>`;
+                return;
+            }
+
+            list.innerHTML = data.map(p => `
+                <div class="flex justify-between items-center p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-rose-500/50 transition-all">
+                    <div>
+                        <p class="font-black uppercase italic text-sm tracking-tight">${p.nama}</p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Sisa Stok</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-black text-rose-500 italic">${p.stok}</span>
+                        <p class="text-[10px] font-black text-rose-500/50 uppercase italic tracking-tighter">Segera Order!</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /** 4. HELPER **/
+        function logout() { 
+            localStorage.removeItem('ali_user_session'); 
+            window.location.href = SCRIPT_URL; 
+        }
     </script>
 </body>
 </html>
