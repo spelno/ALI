@@ -12,79 +12,50 @@
     </style>
 </head>
 <body class="h-screen flex items-center justify-center p-6 text-slate-800">
-
     <div class="bg-white w-full max-w-sm p-10 rounded-[3rem] shadow-2xl">
         <div class="text-center mb-10">
             <div class="w-20 h-20 ali-gradient rounded-[2.5rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
             <h1 class="text-2xl font-black tracking-tighter uppercase">ALI <span class="text-rose-500">POS</span></h1>
-            <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">Authentication Portal</p>
+            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Notes of OD System</p>
         </div>
-
         <div class="space-y-4">
-            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold transition-all focus:ring-2 focus:ring-rose-500/20">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold transition-all focus:ring-2 focus:ring-rose-500/20">
-            
-            <button onclick="prosesLogin()" id="btn" class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase tracking-widest text-sm">
-                Masuk Dashboard
-            </button>
+            <input type="text" id="user" placeholder="Username" class="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 outline-none focus:border-rose-500 font-bold transition-all">
+            <input type="password" id="pass" placeholder="Password" class="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 outline-none focus:border-rose-500 font-bold transition-all">
+            <button id="btn-login" onclick="prosesLogin()" class="w-full ali-gradient text-white font-black py-5 rounded-3xl shadow-xl shadow-rose-500/20 uppercase italic tracking-widest transition-all active:scale-95">Masuk Dashboard</button>
         </div>
     </div>
 
     <script>
-        // PENTING: GANTI DENGAN URL /exec TERBARU ANDA
-        const API_URL = "https://script.google.com/macros/s/AKfycbzngfS166yOXl0-zRa7lHC2pijAvpfgPWQ5UAKl3D4J8B9DjCh4OoYclmGGw6mn-0NJYg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbz-JIFWGlLyvXGr928CzfCsyWOTIkdzp8T4qGWaLDSUQRJ-kOzek9jn4vqT3NVTcvg7ug/exec"; // GANTI DENGAN LINK .exec ANDA
 
         async function prosesLogin() {
             const u = document.getElementById('user').value;
             const p = document.getElementById('pass').value;
-            const b = document.getElementById('btn');
+            const b = document.getElementById('btn-login');
 
-            if(!u || !p) return alert("Isi username & password!");
+            if(!u || !p) return alert("Silakan isi Username dan Password!");
 
             b.innerText = "VERIFIKASI...";
             b.disabled = true;
 
             try {
-                const res = await fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "login", username: u, password: p })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", username: u, password: p }) });
                 const r = await res.json();
 
                 if (r.status === "success") {
-                    // Simpan session agar terbaca Satpam di file lain
-                    sessionStorage.setItem('ali_session_v4', JSON.stringify(r.user));
-                    
-                    // --- LOGIKA PENENTU JALAN (ROUTING) ---
-                    // Membersihkan data dari spasi dan merubah ke huruf kecil
-                    const role = r.user.role.toLowerCase().trim();
-                    console.log("Mengarahkan user dengan role:", role);
-
-                    if (role === "owner") {
-                        window.location.href = "owner.html";
-                    } else if (role === "admin") {
-                        window.location.href = "admin.html";
-                    } else if (role === "kasir") {
-                        window.location.href = "kasir.html";
-                    } else {
-                        // Jika role di Spreadsheet aneh (misal: "boss"), akan muncul pesan ini:
-                        alert("Role '" + role + "' tidak terdaftar. Cek Spreadsheet Anda!");
-                        b.innerText = "Masuk Dashboard";
-                        b.disabled = false;
-                    }
+                    sessionStorage.setItem('ali_user_name', r.user.nama);
+                    window.location.href = API_URL + "?action=" + r.user.role;
                 } else {
-                    alert("Login Gagal: " + r.message);
+                    alert(r.message);
                     b.innerText = "Masuk Dashboard";
                     b.disabled = false;
                 }
             } catch (err) {
-                alert("Koneksi Error! Cek sinyal atau URL Apps Script.");
+                alert("Koneksi Error!");
                 b.innerText = "Masuk Dashboard";
                 b.disabled = false;
             }
         }
-
-        // Enter untuk login
         document.onkeydown = (e) => { if(e.key === "Enter") prosesLogin(); };
     </script>
 </body>
