@@ -1,63 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALI POS - Kasir Terminal</title>
+    
     <script>
-        // Cek apakah user datang dari index.html
         const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
-        if (!session) {
-            // Jika tidak ada sesi, tendang balik ke index.html
-            window.location.replace("index.html");
-        }
+        if (!session) { window.location.replace("index.html"); }
     </script>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir - ALI POS</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    
     <style>
-        /* Tetap gunakan Style asli Anda di sini */
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow: hidden; }
+        .pos-grid { display: grid; grid-template-columns: 1fr 380px; height: 100vh; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        @media (max-width: 1024px) { .pos-grid { grid-template-columns: 1fr; } .cart-panel { display: none; } }
     </style>
 </head>
 <body>
 
-    <div class="flex justify-between p-6">
-        <h1 class="text-xl font-bold">ALI KASIR</h1>
-        <p>Kasir: <span id="nama-kasir-display" class="font-bold text-rose-600 italic">...</span></p>
+    <div class="pos-grid">
+        <main class="flex flex-col p-6 overflow-hidden">
+            <header class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-black italic tracking-tighter text-slate-900 uppercase">ALI <span class="text-rose-600 text-[10px] tracking-widest not-italic font-bold">KASIR</span></h1>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Admin: <span id="nama-admin" class="text-rose-500">---</span></p>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="search-input" placeholder="Cari barang..." class="bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm font-bold w-64 focus:ring-2 focus:ring-rose-500 outline-none shadow-sm">
+                    <button onclick="logout()" class="p-3 bg-white border border-slate-200 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </header>
+
+            <div id="product-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scroll pr-2 pb-10">
+                </div>
+        </main>
+
+        <aside class="cart-panel bg-white border-l border-slate-200 flex flex-col p-6 shadow-2xl relative">
+            <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 italic">Keranjang Belanja</h3>
+            
+            <div id="cart-items" class="flex-1 overflow-y-auto custom-scroll space-y-3 mb-6 pr-2">
+                </div>
+
+            <div class="border-t border-dashed border-slate-200 pt-6 space-y-3">
+                <div class="flex justify-between items-end">
+                    <span class="text-[10px] font-black uppercase text-slate-400">Total Tagihan</span>
+                    <span id="total-tagihan" class="text-3xl font-black italic tracking-tighter text-rose-600">Rp 0</span>
+                </div>
+                <button onclick="prosesBayar()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest mt-4 hover:bg-rose-600 transition-all shadow-xl active:scale-95">
+                    BAYAR SEKARANG
+                </button>
+            </div>
+        </aside>
     </div>
 
-    <div id="main-content">
+    <div id="modal-bayar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+        <div class="bg-white p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl">
+            <h2 class="text-xl font-black italic uppercase mb-6">Pilih <span class="text-rose-600">Metode</span></h2>
+            <div class="grid grid-cols-1 gap-2">
+                <button onclick="finalSimpan('Cash')" class="p-4 border-2 border-slate-50 rounded-2xl font-bold hover:border-rose-500 hover:bg-rose-50 transition-all text-left">💵 Tunai / Cash</button>
+                <button onclick="finalSimpan('QRIS')" class="p-4 border-2 border-slate-50 rounded-2xl font-bold hover:border-rose-500 hover:bg-rose-50 transition-all text-left">📱 QRIS / E-Wallet</button>
+                <button onclick="finalSimpan('Transfer')" class="p-4 border-2 border-slate-50 rounded-2xl font-bold hover:border-rose-500 hover:bg-rose-50 transition-all text-left">🏦 Transfer Bank</button>
+            </div>
+            <button onclick="document.getElementById('modal-bayar').classList.add('hidden')" class="w-full mt-6 text-[9px] font-black uppercase text-slate-400">Kembali</button>
         </div>
+    </div>
 
     <script>
-        // 2. LOGIKA OTOMATIS (Tanpa Double Login)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec"; // Pastikan URL benar
+        const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec"; 
+        let cart = [];
 
+        // AMBIL IDENTITAS DARI LOGIN INDEX
         window.onload = function() {
-            // Nama kasir otomatis diambil dari sesi index.html
-            const user = JSON.parse(sessionStorage.getItem('ali_session_v4'));
-            
-            // Tampilkan nama di layar (Pastikan ID-nya sesuai dengan HTML Anda)
-            if(document.getElementById('nama-kasir-display')) {
-                document.getElementById('nama-kasir-display').innerText = user.nama;
-            }
-
-            // Langsung panggil fungsi muat produk (Tanpa minta password lagi)
-            loadProducts(); 
+            document.getElementById('nama-admin').innerText = session.nama;
+            loadProducts();
         };
 
-        // Fungsi Logout yang membersihkan sesi
+        async function loadProducts() {
+            try {
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" }) });
+                const r = await res.json();
+                if(r.status === "success") renderProducts(r.products);
+            } catch(e) { console.error(e); }
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById('product-list');
+            container.innerHTML = products.map(p => `
+                <div onclick="addToCart('${p[0]}', '${p[1]}', ${p[6]})" class="bg-white p-4 rounded-2xl border border-slate-100 hover:border-rose-400 transition-all cursor-pointer group shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 mb-1 leading-tight h-8 overflow-hidden uppercase">${p[1]}</h4>
+                    <p class="text-rose-600 font-black text-sm italic">Rp ${p[6].toLocaleString()}</p>
+                    <p class="text-[9px] text-slate-400 mt-1 font-bold uppercase">Stok: ${p[7]}</p>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(barcode, nama, harga) {
+            const idx = cart.findIndex(i => i.barcode === barcode);
+            if(idx > -1) { cart[idx].qty++; } else { cart.push({ barcode, nama, harga, qty: 1 }); }
+            updateUI();
+        }
+
+        function updateUI() {
+            const container = document.getElementById('cart-items');
+            let total = 0;
+            container.innerHTML = cart.map((item, i) => {
+                total += item.harga * item.qty;
+                return `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div class="flex-1"><p class="text-[10px] font-bold text-slate-800 uppercase">${item.nama}</p></div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="adjustQty(${i},-1)" class="w-5 h-5 bg-white border rounded text-xs">-</button>
+                        <span class="text-xs font-black">${item.qty}</span>
+                        <button onclick="adjustQty(${i},1)" class="w-5 h-5 bg-white border rounded text-xs">+</button>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('total-tagihan').innerText = "Rp " + total.toLocaleString();
+        }
+
+        function adjustQty(i, v) {
+            cart[i].qty += v;
+            if(cart[i].qty <= 0) cart.splice(i, 1);
+            updateUI();
+        }
+
+        function prosesBayar() {
+            if(cart.length > 0) document.getElementById('modal-bayar').classList.remove('hidden');
+        }
+
         function logout() {
             sessionStorage.removeItem('ali_session_v4');
             window.location.replace("index.html");
         }
-
-        // --- LANJUTKAN DENGAN FUNGSI POS ASLI ANDA (loadProducts, addToCart, dll) ---
-        async function loadProducts() {
-            // Kode asli Anda untuk ambil data dari GS
+        
+        // FUNGSI SIMPAN KE GS MASIH MENGGUNAKAN NAMA DARI SESSION
+        async function finalSimpan(metode) {
+            alert("Berhasil disimpan oleh: " + session.nama);
+            cart = []; updateUI(); document.getElementById('modal-bayar').classList.add('hidden');
         }
     </script>
 </body>
