@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ALI POS - Bright Mode</title>
+    <title>ALI POS - Professional Terminal</title>
     
     <script>
         const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
@@ -13,7 +13,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f4f8; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; overflow: hidden; }
+        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
         
         #sidebar-produk { 
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -22,56 +23,68 @@
         #sidebar-produk.active { transform: translateX(0); }
 
         .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
         .full-text { white-space: normal; word-break: break-word; }
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="p-4">
 
-    <div class="relative flex h-[95vh] rounded-[2.5rem] overflow-hidden shadow-2xl bg-white border border-slate-200">
+    <div class="relative flex h-[95vh] rounded-[2.5rem] overflow-hidden shadow-2xl glass-dark">
         
-        <main class="flex-1 flex flex-col bg-white overflow-hidden">
-            <header class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="p-8 border-b border-white/5 flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-black tracking-tighter text-blue-600 uppercase">ALI <span class="text-slate-900">POS</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kasir: <span class="text-slate-900">${session.nama}</span></p>
+                    <h1 class="text-2xl font-black italic tracking-tighter uppercase">ALI <span class="text-rose-600">POS</span></h1>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Admin: <span class="text-white">${session.nama}</span></p>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="bukaKatalog()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
-                        + Katalog Produk
+                    <button onclick="bukaKatalog()" class="bg-rose-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/20">
+                        + TAMBAH PRODUK
                     </button>
-                    <button onclick="logout()" class="p-2 text-slate-300 hover:text-rose-600">
+                    <button onclick="logout()" class="p-2 text-slate-500 hover:text-rose-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </div>
             </header>
 
             <div id="keranjang-box" class="flex-1 overflow-y-auto custom-scroll p-8 space-y-4">
-                <div id="empty-hint" class="h-full flex flex-col items-center justify-center opacity-30 italic font-bold text-slate-400">
-                    <p>PILIH BARANG DARI KATALOG UNTUK MEMULAI</p>
+                <div class="h-full flex flex-col items-center justify-center opacity-20 italic font-black text-center tracking-widest">
+                    PILIH PRODUK UNTUK TRANSAKSI
                 </div>
             </div>
 
-            <footer class="p-8 bg-slate-50 border-t border-slate-100">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Total Bayar</span>
-                    <span id="total-view" class="text-5xl font-black tracking-tighter text-slate-900">Rp 0</span>
+            <footer class="p-8 bg-slate-900/50 border-t border-white/5">
+                <div class="grid grid-cols-3 gap-8">
+                    <div>
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Tagihan</span>
+                        <p id="total-view" class="text-4xl font-black italic text-white tracking-tighter">Rp 0</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Uang Diterima (F8)</span>
+                        <input type="number" id="input-bayar" onkeyup="hitungKembalian()" placeholder="0" class="w-full bg-slate-800 border-none px-4 py-2 rounded-xl text-2xl font-black text-white outline-none focus:ring-2 focus:ring-rose-600">
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kembalian</span>
+                        <p id="kembalian-view" class="text-4xl font-black italic text-rose-600 tracking-tighter">Rp 0</p>
+                    </div>
                 </div>
-                <button onclick="bayarSekarang()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-blue-600 transition-all active:scale-95">
-                    BAYAR SEKARANG
+                <button onclick="prosesSelesai()" class="w-full mt-6 bg-rose-600 text-white py-5 rounded-2xl font-black uppercase tracking-[0.3em] hover:bg-rose-700 transition-all active:scale-95 shadow-xl shadow-rose-900/40">
+                    SIMPAN & CETAK NOTA
                 </button>
             </footer>
         </main>
 
-        <aside id="sidebar-produk" class="fixed right-6 top-6 bottom-6 w-[400px] bg-white rounded-[2.5rem] shadow-2xl border border-slate-200 flex flex-col z-50">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50 rounded-t-[2.5rem]">
-                <h3 class="font-black text-xs uppercase text-slate-900 tracking-widest">Daftar Produk</h3>
-                <button onclick="bukaKatalog()" class="text-slate-400 hover:text-rose-600 font-black text-xs">TUTUP ✕</button>
+        <aside id="sidebar-produk" class="fixed right-6 top-6 bottom-6 w-[400px] bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/5 flex flex-col z-50">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                <h3 class="font-black text-xs uppercase text-rose-600 tracking-widest">Katalog Produk</h3>
+                <button onclick="bukaKatalog()" class="text-slate-500 hover:text-rose-600 font-black text-xs">TUTUP ✕</button>
             </div>
             <div class="p-4">
-                <input type="text" id="cari" onkeyup="filterCari()" placeholder="Cari nama barang..." class="w-full bg-slate-100 border-none px-5 py-3 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="cari" onkeyup="filterCari()" placeholder="Cari barang..." class="w-full bg-slate-800 border-none px-5 py-3 rounded-xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-rose-600">
             </div>
-            <div id="list-katalog" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2">
+            <div id="list-katalog" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
                 </div>
         </aside>
 
@@ -81,79 +94,91 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec"; 
         let listBelanja = [];
         let masterBarang = [];
+        let grandTotal = 0;
 
         function bukaKatalog() { document.getElementById('sidebar-produk').classList.toggle('active'); }
 
-        async function muatDataSheets() {
+        async function muatData() {
             try {
                 const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" }) });
                 const r = await res.json();
-                if(r.status === "success") {
-                    masterBarang = r.products;
-                    renderKatalog(masterBarang);
-                }
-            } catch(e) { console.log("Gagal muat data"); }
+                if(r.status === "success") { masterBarang = r.products; renderKatalog(masterBarang); }
+            } catch(e) { console.log("Error"); }
         }
 
         function renderKatalog(data) {
             const container = document.getElementById('list-katalog');
             container.innerHTML = data.map(p => {
-                // PENYESUAIAN BERDASARKAN GAMBAR SHEET ANDA:
-                // p[1] = Nama Barang (Kolom B)
-                // p[4] = Harga Jual (Kolom E) -> INI YANG BENAR
-                const hrg = Number(p[4]); 
-
+                const hrg = Number(p[4]); // Kolom E (Harga Jual)
                 return `
-                <div onclick="masukKeranjang('${p[0]}', '${p[1]}', ${hrg})" class="bg-white p-5 rounded-2xl border border-slate-100 hover:border-blue-500 cursor-pointer shadow-sm transition-all active:scale-95 group">
-                    <p class="font-bold text-xs text-slate-700 uppercase full-text leading-tight group-hover:text-blue-600">${p[1]}</p>
-                    <p class="text-blue-600 font-black text-sm mt-2 uppercase tracking-tighter">Rp ${hrg.toLocaleString('id-ID')}</p>
+                <div onclick="masukKeranjang('${p[0]}', '${p[1]}', ${hrg})" class="bg-slate-800 p-5 rounded-2xl border border-white/5 hover:border-rose-600 cursor-pointer shadow-sm transition-all active:scale-95 group">
+                    <p class="font-bold text-xs text-slate-300 uppercase full-text leading-tight group-hover:text-white">${p[1]}</p>
+                    <p class="text-rose-600 font-black text-sm mt-2">Rp ${hrg.toLocaleString('id-ID')}</p>
                 </div>`;
             }).join('');
         }
 
         function masukKeranjang(code, nama, hrg) {
             const cek = listBelanja.findIndex(i => i.code === code);
-            if(cek > -1) {
-                listBelanja[cek].qty++;
-            } else {
-                listBelanja.push({ code, nama, hrg: hrg, qty: 1 });
-            }
-            updateKeranjangUI();
+            if(cek > -1) { listBelanja[cek].qty++; } 
+            else { listBelanja.push({ code, nama, hrg: hrg, qty: 1 }); }
+            updateUI();
         }
 
-        function updateKeranjangUI() {
+        function updateUI() {
             const box = document.getElementById('keranjang-box');
-            let total = 0;
+            grandTotal = 0;
             if(listBelanja.length === 0) {
-                box.innerHTML = `<div class="h-full flex items-center justify-center opacity-30 italic font-bold text-slate-400">PILIH BARANG DARI KATALOG</div>`;
+                box.innerHTML = `<div class="h-full flex items-center justify-center opacity-20 font-black italic tracking-widest">KOSONG</div>`;
             } else {
                 box.innerHTML = listBelanja.map((item, i) => {
                     const sub = item.hrg * item.qty;
-                    total += sub;
+                    grandTotal += sub;
                     return `
-                    <div class="flex justify-between items-center p-6 bg-white border border-slate-100 rounded-[1.5rem] shadow-sm">
+                    <div class="flex justify-between items-center p-6 bg-slate-800/50 border border-white/5 rounded-3xl">
                         <div class="flex-1 pr-4">
-                            <p class="text-sm font-black text-slate-800 uppercase full-text leading-tight">${item.nama}</p>
-                            <p class="text-[10px] font-bold text-blue-400 mt-2 uppercase">@ Rp ${item.hrg.toLocaleString('id-ID')}</p>
+                            <p class="text-sm font-black text-white uppercase full-text leading-tight">${item.nama}</p>
+                            <p class="text-[10px] font-bold text-slate-500 mt-2">@ Rp ${item.hrg.toLocaleString('id-ID')}</p>
                         </div>
                         <div class="flex items-center gap-8">
-                            <div class="flex items-center bg-slate-100 rounded-xl p-1">
-                                <button onclick="setQty(${i},-1)" class="w-8 h-8 font-black text-slate-400 hover:text-blue-600">-</button>
-                                <span class="w-8 text-center text-xs font-black text-slate-800">${item.qty}</span>
-                                <button onclick="setQty(${i},1)" class="w-8 h-8 font-black text-slate-400 hover:text-blue-600">+</button>
+                            <div class="flex items-center bg-slate-900 rounded-xl p-1">
+                                <button onclick="setQty(${i},-1)" class="w-8 h-8 font-black text-slate-500 hover:text-rose-600">-</button>
+                                <span class="w-8 text-center text-xs font-black">${item.qty}</span>
+                                <button onclick="setQty(${i},1)" class="w-8 h-8 font-black text-slate-500 hover:text-rose-600">+</button>
                             </div>
-                            <p class="w-36 text-right font-black text-xl italic text-blue-600">Rp ${sub.toLocaleString('id-ID')}</p>
+                            <p class="w-36 text-right font-black text-xl italic text-rose-600">Rp ${sub.toLocaleString('id-ID')}</p>
                         </div>
                     </div>`;
                 }).join('');
             }
-            document.getElementById('total-view').innerText = "Rp " + total.toLocaleString('id-ID');
+            document.getElementById('total-view').innerText = "Rp " + grandTotal.toLocaleString('id-ID');
+            hitungKembalian();
         }
 
         function setQty(idx, val) {
             listBelanja[idx].qty += val;
             if(listBelanja[idx].qty <= 0) listBelanja.splice(idx, 1);
-            updateKeranjangUI();
+            updateUI();
+        }
+
+        function hitungKembalian() {
+            const bayar = Number(document.getElementById('input-bayar').value) || 0;
+            const kembalian = bayar - grandTotal;
+            const view = document.getElementById('kembalian-view');
+            
+            view.innerText = "Rp " + (kembalian < 0 ? 0 : kembalian).toLocaleString('id-ID');
+            view.style.color = kembalian < 0 ? "#ef4444" : "#e11d48";
+        }
+
+        function prosesSelesai() {
+            const bayar = Number(document.getElementById('input-bayar').value) || 0;
+            if(grandTotal === 0) return;
+            if(bayar < grandTotal) return alert("Uang pembayaran kurang!");
+            
+            alert("TRANSAKSI BERHASIL!\nKembalian: Rp " + (bayar - grandTotal).toLocaleString('id-ID'));
+            listBelanja = [];
+            document.getElementById('input-bayar').value = "";
+            updateUI();
         }
 
         function filterCari() {
@@ -162,15 +187,9 @@
             renderKatalog(f);
         }
 
-        function logout() { sessionStorage.removeItem('ali_session_v4'); window.location.replace("index.html"); }
+        function logout() { sessionStorage.clear(); window.location.replace("index.html"); }
 
-        function bayarSekarang() {
-            if(listBelanja.length === 0) return;
-            alert("Transaksi Berhasil! Total: " + document.getElementById('total-view').innerText);
-            listBelanja = []; updateKeranjangUI();
-        }
-
-        muatDataSheets();
+        muatData();
     </script>
 </body>
 </html>
