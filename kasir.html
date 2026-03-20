@@ -1,199 +1,136 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI - Kasir Premium</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .ali-red { background: #e11d48; }
-        .ali-red-text { color: #e11d48; }
-        #catalog-popup { transition: 0.4s ease; z-index: 1000; }
-        @media print { body > *:not(#print-receipt) { display: none !important; } #print-receipt { display: block !important; width: 58mm; font-family: monospace; font-size: 10px; } }
-        #print-receipt { display: none; }
-        .btn-method-active { border-color: #e11d48; background-color: #fff1f2; color: #e11d48; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-    </style>
-</head>
-<body class="h-screen flex overflow-hidden">
+/**
+ * KONFIGURASI GLOBAL
+ */
+const SHEET_PRODUK = "Produk";
+const SHEET_TRANSAKSI = "Transaksi";
+const SHEET_PENGATURAN = "Pengaturan";
+const FOLDER_BUKTI_ID = "11MlrKJh3vrP2s3xSiRj94ogLuv33qc"; // Folder ID Google Drive Anda
 
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-6 shadow-sm">
-        <div class="text-xl font-black ali-red-text italic mb-4">ALI</div>
-        <button onclick="toggleCatalog()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-        <button onclick="window.location.href='admin.html'" class="p-4 rounded-2xl bg-slate-50 text-slate-500 hover:bg-rose-500 hover:text-white transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></button>
-    </aside>
+/**
+ * FUNGSI GET: Menangani semua permintaan pengambilan data
+ */
+function doGet(e) {
+  var action = e.parameter.action;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // 1. Ambil Data Produk untuk Katalog Kasir
+  if (action == 'getProducts') {
+    var sheet = ss.getSheetByName(SHEET_PRODUK);
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var result = [];
+    for (var i = 1; i < data.length; i++) {
+      var obj = {};
+      for (var j = 0; j < headers.length; j++) {
+        var key = headers[j].toString().replace(/ /g, "_");
+        obj[key] = data[i][j];
+      }
+      result.push(obj);
+    }
+    return translateToJson(result);
+  }
 
-    <main class="flex-1 flex flex-col p-8 overflow-hidden">
-        <header class="flex justify-between items-end mb-6">
-            <h2 class="text-3xl font-black text-slate-800 italic uppercase">KERANJANG</h2>
-            <p class="text-slate-400 font-bold text-xs"><span id="u-name">-</span> | Kasir</p>
-        </header>
-        <div class="flex-1 bg-white rounded-[2rem] border shadow-sm overflow-hidden flex flex-col">
-            <div id="cart-list" class="flex-1 overflow-y-auto p-8"></div>
-            <div class="p-6 bg-slate-50 border-t">
-                <input type="text" id="barcode-scan" autofocus placeholder="SCAN BARCODE..." class="w-full bg-white border-2 rounded-2xl py-5 px-8 text-2xl font-black ali-red-text focus:border-rose-500 outline-none">
-            </div>
-        </div>
-    </main>
+  // 2. Cek Hasil Scan dari HP (Remote Scanner)
+  if (action == 'checkScan') {
+    var sheet = ss.getSheetByName(SHEET_PENGATURAN);
+    var code = sheet.getRange("B10").getValue(); // Membaca cell B10
+    
+    if (code && code !== "" && code !== "-") {
+      sheet.getRange("B10").setValue("-"); // Langsung kosongkan setelah dibaca
+      return translateToJson({ barcode: code });
+    }
+    return translateToJson({ barcode: "-" });
+  }
 
-    <aside class="w-96 bg-white border-l p-10 flex flex-col shadow-lg overflow-y-auto">
-        <div class="text-center mb-8">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
-            <h1 id="total-display" class="text-5xl font-black ali-red-text tracking-tighter">Rp 0</h1>
-        </div>
+  // 3. Ambil Stok Menipis (Untuk Dashboard Owner)
+  if (action == 'getLowStock') {
+    var sheet = ss.getSheetByName(SHEET_PRODUK);
+    var data = sheet.getDataRange().getValues();
+    var lowStockItems = [];
+    for (var i = 1; i < data.length; i++) {
+      var stMin = data[i][5]; // Kolom F
+      var stSkr = data[i][6]; // Kolom G
+      if (stSkr <= stMin) {
+        lowStockItems.push({ nama: data[i][1], stok: stSkr, min: stMin });
+      }
+    }
+    return translateToJson(lowStockItems);
+  }
 
-        <div class="space-y-4">
-            <p class="text-[10px] font-black text-slate-400 uppercase">Metode Bayar</p>
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="setMethod('Cash')" id="m-cash" class="py-3 rounded-xl border-2 text-[10px] font-black btn-method-active">CASH</button>
-                <button onclick="setMethod('Transfer')" id="m-transfer" class="py-3 rounded-xl border-2 text-[10px] font-black border-slate-100 text-slate-400">TRANSFER</button>
-                <button onclick="setMethod('QRIS')" id="m-qris" class="py-3 rounded-xl border-2 text-[10px] font-black border-slate-100 text-slate-400">QRIS</button>
-            </div>
+  // 4. Ambil Pengaturan Toko
+  if (action == 'getSettings') {
+    var sheet = ss.getSheetByName(SHEET_PENGATURAN);
+    var settings = {};
+    if (sheet) {
+      var data = sheet.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) { settings[data[i][0]] = data[i][1]; }
+    }
+    return translateToJson(settings);
+  }
+}
 
-            <div id="evidence-area" class="hidden p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                <p class="text-[9px] font-bold text-slate-500 mb-2 uppercase">Ambil Foto Bukti</p>
-                <input type="file" id="evidence-file" accept="image/*" capture="camera" class="hidden">
-                <button onclick="document.getElementById('evidence-file').click()" class="bg-white px-4 py-2 rounded-lg border text-[10px] font-bold shadow-sm">Buka Kamera</button>
-                <p id="file-name" class="text-[8px] text-emerald-500 mt-2 italic"></p>
-            </div>
+/**
+ * FUNGSI POST: Menangani Simpan Transaksi & Kirim Scan dari HP
+ */
+function doPost(e) {
+  try {
+    var postData = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // A. JIKA ACTION ADALAH KIRIM SCAN DARI HP
+    if (postData.action == 'sendScan') {
+      var sheetSetting = ss.getSheetByName(SHEET_PENGATURAN);
+      sheetSetting.getRange("B10").setValue(postData.barcode);
+      return translateToJson({ status: "success", message: "Barcode terkirim ke laptop" });
+    }
 
-            <div class="bg-slate-50 p-6 rounded-3xl border">
-                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">Bayar Tunai</label>
-                <input type="number" id="cash-in" oninput="calculateChange()" class="w-full bg-transparent text-3xl font-black outline-none border-b-2 border-slate-200 focus:border-rose-500">
-                <div class="flex justify-between mt-4 text-emerald-600 font-bold">
-                    <span class="text-[10px]">KEMBALI</span><span id="change-display" class="text-xl font-black">Rp 0</span>
-                </div>
-            </div>
+    // B. JIKA ACTION ADALAH SIMPAN TRANSAKSI
+    var sheetSales = ss.getSheetByName(SHEET_TRANSAKSI);
+    var sheetStock = ss.getSheetByName(SHEET_PRODUK);
+    var timestamp = new Date();
+    var dateStr = Utilities.formatDate(timestamp, "GMT+8", "yyyy-MM-dd");
+    var timeStr = Utilities.formatDate(timestamp, "GMT+8", "HH:mm:ss");
+    var invoiceId = "TR-" + timestamp.getTime();
 
-            <button onclick="handleTransaction()" id="btn-pay" class="w-full ali-red hover:bg-rose-700 text-white font-black py-6 rounded-3xl text-xl shadow-xl transition-all">SELESAI & CETAK</button>
-        </div>
-    </aside>
+    // 1. Upload Foto Bukti ke Drive (Jika Non-Tunai)
+    var fileUrl = "-";
+    if (postData.imageContent && postData.method !== 'Cash') {
+      var folder = DriveApp.getFolderById(FOLDER_BUKTI_ID);
+      var blob = Utilities.newBlob(Utilities.base64Decode(postData.imageContent), "image/jpeg", "BUKTI_" + invoiceId + ".jpg");
+      var file = folder.createFile(blob);
+      fileUrl = file.getUrl();
+    }
 
-    <div id="print-receipt">
-        <center><h3 id="p-toko">-</h3><p id="p-alamat" style="font-size:8px"></p></center>
-        <div id="p-items" style="margin-top:10px"></div>
-        <p>-------------------------</p>
-        <div id="p-totals"></div>
-        <center><p id="p-footer" style="margin-top:10px"></p></center>
-    </div>
+    // 2. Iterasi Keranjang: Simpan Baris & Potong Stok
+    postData.cart.forEach(function(item) {
+      // Simpan ke Transaksi (ID, Tgl, Jam, Barcode, Nama, Qty, Harga, Total, Kasir, Metode, Status, Link Bukti)
+      sheetSales.appendRow([
+        invoiceId, dateStr, timeStr, item.Barcode, item.Nama_Barang, 
+        item.Qty, item.Harga_Jual, (item.Qty * item.Harga_Jual), 
+        postData.admin, postData.method, "Selesai", fileUrl
+      ]);
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzNEaQ4vDuyR00TlJtrWEP3QwQQqn73I4L8ziabQZ6O3RCCeRAMGmzubU2MgHtBYAE6dg/exec"; // GANTI URL INI
-        let products = [], cart = [], currentMethod = 'Cash';
-        const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
-
-        if(!session) window.location.replace("index.html");
-        document.getElementById('u-name').innerText = session.nama;
-
-        window.onload = () => { fetchData(); fetchSettings(); };
-
-        async function fetchData() {
-            const res = await fetch(`${API_URL}?action=getProducts`);
-            products = await res.json();
+      // Update Stok di Sheet Produk (Kolom G)
+      var stockData = sheetStock.getDataRange().getValues();
+      for (var k = 1; k < stockData.length; k++) {
+        if (stockData[k][0].toString() == item.Barcode.toString()) {
+          var s_skr = stockData[k][6];
+          sheetStock.getRange(k + 1, 7).setValue(s_skr - item.Qty);
+          break;
         }
+      }
+    });
 
-        async function fetchSettings() {
-            const res = await fetch(`${API_URL}?action=getSettings`);
-            const s = await res.json();
-            document.getElementById('p-toko').innerText = s.Nama_Toko || "ALI POS";
-            document.getElementById('p-alamat').innerText = s.Alamat_Toko || "";
-            document.getElementById('p-footer').innerText = s.Pesan_Kaki || "Terima Kasih";
-        }
+    return translateToJson({ status: "success", invoice: invoiceId });
 
-        function setMethod(m) {
-            currentMethod = m;
-            ['m-cash', 'm-transfer', 'm-qris'].forEach(id => document.getElementById(id).className = "py-3 rounded-xl border-2 text-[10px] font-black border-slate-100 text-slate-400");
-            document.getElementById('m-'+m.toLowerCase()).className = "py-3 rounded-xl border-2 text-[10px] font-black btn-method-active";
-            
-            const area = document.getElementById('evidence-area');
-            if(m !== 'Cash') {
-                area.classList.remove('hidden');
-                document.getElementById('cash-in').value = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            } else {
-                area.classList.add('hidden');
-                document.getElementById('cash-in').value = '';
-            }
-            calculateChange();
-        }
+  } catch (err) {
+    return translateToJson({ status: "error", message: err.toString() });
+  }
+}
 
-        document.getElementById('evidence-file').onchange = (e) => {
-            if(e.target.files.length > 0) document.getElementById('file-name').innerText = "✓ Foto Siap";
-        };
-
-        async function handleTransaction() {
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value;
-            if(cart.length === 0 || cash < total) return alert("Cek Keranjang/Uang!");
-
-            let base64 = "";
-            if(currentMethod !== 'Cash') {
-                const file = document.getElementById('evidence-file').files[0];
-                if(!file) return alert("WAJIB FOTO BUKTI!");
-                base64 = await toBase64(file);
-            }
-
-            // Siapkan Struk & Cetak
-            prepareReceipt(total, cash);
-            window.print();
-
-            if(confirm("Cetak Berhasil? Simpan sekarang?")) {
-                document.getElementById('btn-pay').innerText = "PROSES...";
-                try {
-                    await fetch(API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ 
-                            action: 'saveTransaction', 
-                            admin: session.nama, 
-                            cart: cart, 
-                            method: currentMethod,
-                            imageContent: base64.split(',')[1] 
-                        })
-                    });
-                    alert("Berhasil!");
-                    cart = []; updateUI(); document.getElementById('cash-in').value = ''; setMethod('Cash');
-                    document.getElementById('file-name').innerText = "";
-                    fetchData();
-                } catch(e) { alert("Gagal Simpan"); }
-                document.getElementById('btn-pay').innerText = "SELESAI & CETAK";
-            }
-        }
-
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
-        // Logika standar lainnya
-        function addToCart(bc) {
-            const p = products.find(x => x.Barcode == bc);
-            if(!p) return;
-            const ex = cart.find(c => c.Barcode == bc);
-            if(ex) ex.Qty++; else cart.push({...p, Qty: 1});
-            updateUI();
-            document.getElementById('barcode-scan').value = '';
-        }
-        function updateUI() {
-            const list = document.getElementById('cart-list');
-            let total = 0;
-            list.innerHTML = cart.map((item, i) => {
-                const sub = item.Harga_Jual * item.Qty; total += sub;
-                return `<div class="flex justify-between py-4 border-b"><div><b>${item.Nama_Barang}</b><br><small>${item.Barcode}</small></div><div>x${item.Qty}</div><div class="ali-red-text font-black">Rp ${sub.toLocaleString()}</div></div>`;
-            }).join('');
-            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
-        }
-        function calculateChange() {
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value || 0;
-            document.getElementById('change-display').innerText = `Rp ${Math.max(0, cash - total).toLocaleString()}`;
-        }
-        function prepareReceipt(total, cash) {
-            document.getElementById('p-items').innerHTML = cart.map(i => `<div style="display:flex; justify-content:space-between"><span>${i.Nama_Barang} x${i.Qty}</span><span>${(i.Qty*i.Harga_Jual).toLocaleString()}</span></div>`).join('');
-            document.getElementById('p-totals').innerHTML = `<b>TOTAL: Rp ${total.toLocaleString()}</b><br>BAYAR (${currentMethod}): Rp ${Number(cash).toLocaleString()}<br>KEMBALI: Rp ${Math.max(0, cash-total).toLocaleString()}`;
-        }
-        document.getElementById('barcode-scan').onkeypress = (e) => { if(e.key === 'Enter') addToCart(e.target.value); };
-        function toggleCatalog() { /* Logika catalog popup tetap sama */ }
-    </script>
-</body>
-</html>
+/**
+ * HELPER: Mengubah data ke format JSON
+ */
+function translateToJson(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
