@@ -6,10 +6,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow: hidden; }
+        
+        /* WARNA NAVIGASI KEMBALI KE ROSE (YANG ANDA SUKAI) */
         .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 14px; border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.3s; }
-        .nav-active { background: #1e293b !important; color: white !important; }
+        .nav-btn:hover { color: #e11d48; } /* Rose hover */
+        .nav-active { background: #e11d48 !important; color: white !important; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
+        
+        /* KHUSUS UNTUK PRODUK HABIS DI KATALOG (ABU-ABU) */
+        .item-habis { 
+            background-color: #f1f5f9 !important; 
+            border-color: #e2e8f0 !important; 
+            cursor: not-allowed !important; 
+            filter: grayscale(1); 
+            opacity: 0.6; 
+        }
+
         .thermal-font { font-family: 'Courier New', Courier, monospace; line-height: 1.2; }
-        .out-of-stock { background-color: #f1f5f9 !important; border-color: #e2e8f0 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.6; }
         #custom-toast { transform: translateX(-50%) translateY(100px); transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); position: fixed; bottom: 40px; left: 50%; z-index: 300; }
         #custom-toast.show { transform: translateX(-50%) translateY(0); }
     </style>
@@ -21,13 +33,11 @@
         <span id="toast-msg" class="font-bold text-sm uppercase tracking-tight"></span>
     </div>
 
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50">
-        <div class="bg-slate-800 p-2 rounded-lg mb-8">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-        </div>
+    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50 shadow-sm">
+        <div class="font-black text-rose-600 mb-8 text-xl italic tracking-tighter uppercase">OD</div>
         <nav class="flex flex-col gap-4 w-full px-2">
-            <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Katalog</span></div>
-            <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Stok</span></div>
+            <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-[8px] font-bold mt-1 uppercase text-center leading-none">Katalog</span></div>
+            <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="text-[8px] font-bold mt-1 uppercase text-center leading-none">Stok</span></div>
         </nav>
     </aside>
 
@@ -35,28 +45,37 @@
         <div id="view-pos" class="flex flex-col h-full">
             <header class="flex justify-between items-center mb-6">
                 <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Kasir</h2>
-                <h1 id="total-display" class="text-5xl font-black text-slate-800 tracking-tighter">Rp 0</h1>
+                <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter">Rp 0</h1>
             </header>
             <div class="flex-1 overflow-y-auto border-y border-slate-50 py-4" id="cart-list"></div>
+            
             <div class="mt-8 grid grid-cols-12 gap-4">
-                <div class="col-span-8"><input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold outline-none focus:border-slate-400"></div>
+                <div class="col-span-8">
+                    <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold outline-none focus:border-rose-400">
+                </div>
                 <div class="col-span-4 bg-slate-50 rounded-2xl border border-slate-100 px-6 flex flex-col justify-center">
                     <span class="text-[9px] font-bold text-slate-400 uppercase">Tunai</span>
                     <input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full" placeholder="0">
                 </div>
             </div>
+
             <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <span id="change-display" class="text-2xl font-black text-emerald-500 italic">Rp 0</span>
-                <button onclick="handleTransaction()" id="btn-pay" class="bg-slate-800 text-white font-black px-12 py-5 rounded-2xl hover:bg-black uppercase italic transition-all">Simpan & Cetak</button>
+                <button onclick="handleTransaction()" id="btn-pay" class="bg-rose-600 text-white font-black px-12 py-5 rounded-2xl hover:bg-rose-700 uppercase italic transition-all shadow-lg shadow-rose-200">Simpan & Cetak</button>
             </div>
         </div>
 
-        <div id="view-inventory" class="hidden flex flex-col h-full bg-white">
+        <div id="view-inventory" class="hidden flex flex-col h-full">
             <header class="mb-6 flex justify-between items-end">
                 <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Inventory</h2>
-                <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none">
+                <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none focus:border-rose-400">
             </header>
-            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl"><table class="w-full text-left"><thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-100"><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Barcode</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Produk</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-center">Stok</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-right">Harga</th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-50"></tbody></table></div>
+            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b"><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Barcode</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Produk</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-center">Stok</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-right">Harga</th></tr></thead>
+                    <tbody id="inventory-table-body" class="divide-y"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -138,14 +157,15 @@
             document.getElementById('change-display').innerText = `Rp ${Math.max(0, cash - total).toLocaleString()}`;
         }
 
+        // LOGIKA ABU-ABU HANYA UNTUK ITEM HABIS
         function renderCatalog() {
             document.getElementById('catalog-grid').innerHTML = products.map(p => {
-                const isEmpty = p.Stok <= 0;
+                const habis = p.Stok <= 0;
                 return `
-                <button onclick="${isEmpty ? '' : `addToCart('${p.Barcode}')`}" 
-                    class="p-4 bg-white border border-slate-100 rounded-2xl text-left transition-all shadow-sm ${isEmpty ? 'out-of-stock' : 'hover:border-slate-800'}">
-                    <p class="font-bold text-[10px] uppercase h-8 overflow-hidden mb-1 leading-tight">${p.Nama_Barang}</p>
-                    <p class="font-black text-[11px] italic">${isEmpty ? 'HABIS' : `Rp ${p.Harga_Jual.toLocaleString()}`}</p>
+                <button onclick="${habis ? '' : `addToCart('${p.Barcode}')`}" 
+                    class="p-4 bg-white border border-slate-100 rounded-2xl text-left transition-all shadow-sm ${habis ? 'item-habis' : 'hover:border-rose-400'}">
+                    <p class="font-bold text-[10px] uppercase h-8 overflow-hidden mb-1 leading-tight group-hover:text-rose-600">${p.Nama_Barang}</p>
+                    <p class="text-rose-600 font-black text-[11px] italic">${habis ? 'HABIS' : `Rp ${p.Harga_Jual.toLocaleString()}`}</p>
                 </button>`;
             }).join('');
         }
@@ -172,7 +192,7 @@
                     showThermalReceipt({ invoice: result.invoice, items: [...cart], total, cash, change: Math.max(0, cash - total), date: new Date().toLocaleString('id-ID') });
                     cart = []; updateUI(); document.getElementById('cash-in').value = ''; fetchData();
                 }
-            } catch (e) { notify("GAGAL TERHUBUNG!"); }
+            } catch (e) { notify("KONEKSI ERROR!"); }
             finally { btn.disabled = false; btn.innerText = "Simpan & Cetak"; }
         }
 
