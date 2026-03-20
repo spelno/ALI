@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI POS - Owner Intelligence</title>
+    <title>ALI POS - Executive Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -14,62 +14,59 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="p-6 lg:p-12 min-h-screen overflow-x-hidden">
+<body class="p-6 lg:p-12 min-h-screen">
 
-    <header class="max-w-6xl mx-auto flex justify-between items-end mb-12">
-        <div>
-            <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] mb-2 italic">Executive Summary</p>
-            <h1 class="text-4xl font-black uppercase italic tracking-tighter text-white">Dashboard <span class="text-rose-500">Utama</span></h1>
+    <header class="max-w-6xl mx-auto flex justify-between items-center mb-12">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg">A</div>
+            <div>
+                <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] mb-1 italic">Executive Dashboard</p>
+                <h1 class="text-3xl font-black uppercase italic tracking-tighter">Performance <span class="text-rose-500">Analytics</span></h1>
+            </div>
         </div>
         <button onclick="logout()" class="text-[10px] font-bold text-slate-500 uppercase border border-slate-700 px-6 py-2 rounded-full hover:bg-rose-600 hover:text-white transition-all">Keluar</button>
     </header>
 
-    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div class="glass-card p-8 rounded-[3rem] relative overflow-hidden group">
-            <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500 blur-[80px] opacity-20 group-hover:opacity-40 transition-all"></div>
-            <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-4">Omzet Hari Ini</p>
-            <h2 id="txt-sales" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
+    <main class="max-w-6xl mx-auto space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-card p-8 rounded-[3rem] border-l-4 border-l-emerald-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Penjualan</p>
+                <h2 id="txt-sales" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
+            </div>
+            <div class="glass-card p-8 rounded-[3rem] border-l-4 border-l-rose-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Pengeluaran</p>
+                <h2 id="txt-expense" class="text-4xl font-black italic tracking-tighter text-rose-500">Rp 0</h2>
+            </div>
+            <div class="ali-gradient p-8 rounded-[3rem] shadow-2xl shadow-rose-900/40">
+                <p class="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">Laba Bersih (Profit)</p>
+                <h2 id="txt-profit" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
+            </div>
         </div>
 
-        <div class="glass-card p-8 rounded-[3rem] relative overflow-hidden group">
-            <div class="absolute -right-10 -top-10 w-32 h-32 bg-rose-500 blur-[80px] opacity-20 group-hover:opacity-40 transition-all"></div>
-            <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-4">Pengeluaran Hari Ini</p>
-            <h2 id="txt-expense" class="text-4xl font-black italic tracking-tighter text-rose-500">Rp 0</h2>
-        </div>
-
-        <div class="ali-gradient p-8 rounded-[3rem] shadow-2xl shadow-rose-900/20 relative overflow-hidden">
-            <p class="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">Profit Bersih (Net)</p>
-            <h2 id="txt-profit" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
-        </div>
-
-        <div class="lg:col-span-2 glass-card p-10 rounded-[3.5rem] flex flex-col h-[400px]">
-            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex justify-between">
-                <span>Rincian Pengeluaran</span>
-                <span class="text-rose-500 italic">Live Update</span>
-            </h3>
-            <div id="expense-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass-card p-10 rounded-[3.5rem] flex flex-col h-[500px]">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Rincian Pengeluaran</h3>
+                    <span class="text-[10px] font-bold bg-white/5 px-3 py-1 rounded-full text-slate-500 uppercase italic">Hari Ini</span>
                 </div>
-        </div>
+                <div id="expense-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
+                    </div>
+            </div>
 
-        <div class="glass-card p-10 rounded-[3.5rem] flex flex-col h-[400px]">
-            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Peringatan Stok</h3>
-            <div id="low-stock-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar text-center">
-                </div>
-            <button onclick="location.reload()" class="mt-6 w-full bg-white/5 hover:bg-white/10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Refresh Laporan</button>
+            <div class="glass-card p-10 rounded-[3.5rem] flex flex-col h-[500px]">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-8">Peringatan Stok Rendah</h3>
+                <div id="low-stock-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
+                    </div>
+                <button onclick="loadOwnerData()" class="mt-8 w-full bg-white/5 hover:bg-white/10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all italic border border-white/5">Refresh Laporan</button>
+            </div>
         </div>
-
     </main>
 
-    <footer class="mt-16 text-center">
-        <p class="text-[9px] font-bold text-slate-600 uppercase tracking-[0.5em] italic">ALI POS Intelligence &bull; Business Management System &bull; 2026</p>
-    </footer>
-
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRdufqkLXutBxdcinua_EgZ99q7CmLIhCCBOez8U3peAIQkAKNk1DPwWHWFxNhulEYaA/exec";
-        let session = JSON.parse(localStorage.getItem('ali_session'));
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAWigC7Nut3LCbGgOFMzKAZuvQPgRs3bNEw9IGGVc2KHy5UVsK4Wttq5CQnHXyiax3BA/exec"; // Ganti dengan URL Deploy terbaru
 
         window.onload = () => {
+            const session = JSON.parse(localStorage.getItem('ali_session'));
             if (!session || session.role !== 'owner') window.location.href = "index.html";
             loadOwnerData();
         };
@@ -79,43 +76,42 @@
                 const res = await fetch(SCRIPT_URL + "?action=ownerFullStats");
                 const d = await res.json();
 
-                // 1. Update Nominal
+                // Update Angka
                 document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
                 document.getElementById('txt-expense').innerText = "Rp " + d.expense.toLocaleString();
                 document.getElementById('txt-profit').innerText = "Rp " + d.profit.toLocaleString();
 
-                // 2. Render Pengeluaran
+                // Render Pengeluaran
                 const expDiv = document.getElementById('expense-list');
                 if(d.expenses.length === 0) {
-                    expDiv.innerHTML = `<p class="text-center py-20 text-slate-600 italic text-xs uppercase font-bold border border-dashed border-slate-800 rounded-3xl">Belum ada pengeluaran hari ini</p>`;
+                    expDiv.innerHTML = `<div class="text-center py-20 text-slate-600 font-bold uppercase italic text-xs">Belum ada biaya tercatat</div>`;
                 } else {
                     expDiv.innerHTML = d.expenses.map(e => `
-                        <div class="flex justify-between items-center p-5 bg-white/5 rounded-2xl border border-white/5 hover:border-rose-500/30 transition-all">
+                        <div class="p-6 bg-white/5 rounded-3xl border border-white/5 flex justify-between items-center">
                             <div>
-                                <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">${e.kategori}</p>
-                                <p class="font-bold text-slate-300 text-sm italic uppercase">${e.info}</p>
+                                <p class="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">${e.kategori}</p>
+                                <p class="font-bold text-slate-200 uppercase italic text-sm">${e.info}</p>
                             </div>
-                            <span class="font-black text-lg italic tracking-tighter">- Rp ${e.jumlah.toLocaleString()}</span>
+                            <span class="font-black text-rose-500 text-lg italic">- ${e.jumlah.toLocaleString()}</span>
                         </div>
                     `).join('');
                 }
 
-                // 3. Render Stok Rendah
+                // Render Stok
                 const stockDiv = document.getElementById('low-stock-list');
                 if(d.lowStock.length === 0) {
-                    stockDiv.innerHTML = `<p class="text-slate-600 italic py-10">Semua stok aman</p>`;
+                    stockDiv.innerHTML = `<div class="text-center py-20 text-slate-600 font-bold uppercase italic text-xs">Semua stok aman</div>`;
                 } else {
                     stockDiv.innerHTML = d.lowStock.map(p => `
-                        <div class="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20 mb-2">
-                            <p class="font-black uppercase italic text-[11px] text-rose-500">${p.nama}</p>
-                            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase">Sisa: ${p.stok} PCS</p>
+                        <div class="p-5 bg-rose-500/10 rounded-2xl border border-rose-500/20 flex justify-between items-center">
+                            <span class="font-black uppercase italic text-xs text-rose-500">${p.nama}</span>
+                            <span class="text-[10px] font-bold text-white uppercase">Sisa: ${p.stok}</span>
                         </div>
                     `).join('');
                 }
 
             } catch (err) {
-                console.error(err);
-                alert("Gagal memuat data owner!");
+                alert("Koneksi gagal! Pastikan URL API sudah benar.");
             }
         }
 
