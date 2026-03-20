@@ -45,7 +45,6 @@
                 </div>
             </header>
             <div class="flex-1 overflow-y-auto custom-scrollbar border-y border-slate-50 py-4" id="cart-list"></div>
-            
             <div class="mt-8 grid grid-cols-12 gap-4">
                 <div class="col-span-8">
                     <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold text-rose-600 outline-none focus:border-rose-500 transition-all">
@@ -55,7 +54,6 @@
                     <input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full" placeholder="0">
                 </div>
             </div>
-
             <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 uppercase">Kembalian</span>
@@ -66,9 +64,14 @@
         </div>
 
         <div id="view-inventory" class="hidden flex flex-col h-full bg-white animate-in fade-in duration-300">
-            <header class="mb-6">
-                <h2 class="text-3xl font-extrabold tracking-tighter text-slate-800 uppercase italic">Stock & Inventory</h2>
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Status ketersediaan barang real-time</p>
+            <header class="mb-6 flex justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tighter text-slate-800 uppercase italic">Stock & Inventory</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Status ketersediaan barang</p>
+                </div>
+                <div class="w-64">
+                    <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari nama atau barcode..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none focus:border-rose-500">
+                </div>
             </header>
             <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl custom-scrollbar">
                 <table class="w-full text-left border-collapse">
@@ -80,8 +83,7 @@
                             <th class="p-5 font-bold text-slate-400 uppercase text-xs text-right">Harga Jual</th>
                         </tr>
                     </thead>
-                    <tbody id="inventory-table-body" class="divide-y divide-slate-50">
-                        </tbody>
+                    <tbody id="inventory-table-body" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
         </div>
@@ -92,15 +94,18 @@
         <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 custom-scrollbar bg-slate-50/30"></div>
     </aside>
 
-    <div id="receipt-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] items-center justify-center p-6 cursor-pointer">
-        <div class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 cursor-default" onclick="event.stopPropagation()">
-            <div id="receipt-content"></div>
-            <p class="text-center text-[9px] text-slate-300 mt-6 uppercase tracking-widest">Klik di mana saja untuk menutup</p>
+    <div id="receipt-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[200] items-center justify-center p-6 cursor-pointer">
+        <div class="bg-white w-full max-w-xs rounded-[3rem] p-10 shadow-2xl border border-slate-100 cursor-default" onclick="event.stopPropagation()">
+            <div id="receipt-content">
+                </div>
+            <div class="mt-8 pt-6 border-t border-dashed border-slate-100 text-center">
+                <p class="text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">Klik di mana saja untuk menutup</p>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwDX934LugMyjWFT-CXrVYoEQDfajg_aBYBe1y5G2M8p6VM8ymX0Wc9Z9341KKxIpQgjQ/exec"; 
+        const API_URL = "URL_DEPLOY_ANDA"; 
         let products = [], cart = [];
 
         window.onload = fetchData;
@@ -114,16 +119,11 @@
             } catch (e) { console.error("Database fail"); }
         }
 
-        // FUNGSI GANTI HALAMAN TENGAH
         function switchMainView(view) {
             document.getElementById('view-pos').classList.toggle('hidden', view !== 'pos');
             document.getElementById('view-inventory').classList.toggle('hidden', view !== 'inventory');
             document.getElementById('tab-pos').className = view === 'pos' ? 'nav-btn nav-active' : 'nav-btn';
             document.getElementById('tab-inventory').className = view === 'inventory' ? 'nav-btn nav-active' : 'nav-btn';
-            
-            if(view === 'pos') {
-                setTimeout(() => document.getElementById('barcode-scan').focus(), 100);
-            }
         }
 
         function handleManualInput(e) { if(e.key === 'Enter') { addToCart(e.target.value); e.target.value = ''; } }
@@ -134,7 +134,6 @@
             const existing = cart.find(c => c.Barcode.toString() === bc.toString());
             if(existing) { existing.Qty += 1; } else { cart.push({...p, Qty: 1}); }
             updateUI();
-            // Otomatis pindah ke view POS jika sedang di inventory tapi ada yang discan
             switchMainView('pos');
         }
 
@@ -143,13 +142,9 @@
             let total = 0;
             list.innerHTML = cart.map((item, idx) => {
                 const sub = item.Harga_Jual * item.Qty; total += sub;
-                return `<div class="flex justify-between items-center py-4 border-b border-slate-50 px-2 group hover:bg-slate-50 rounded-xl transition-all">
+                return `<div class="flex justify-between items-center py-4 px-2 group hover:bg-slate-50 rounded-xl transition-all">
                     <div class="flex-1"><p class="font-bold text-slate-800 text-sm uppercase">${item.Nama_Barang}</p><p class="text-[9px] text-slate-300 font-bold">${item.Barcode}</p></div>
-                    <div class="flex items-center gap-6">
-                        <span class="font-black text-slate-300 italic">x${item.Qty}</span>
-                        <span class="font-bold text-rose-600 w-24 text-right italic">Rp ${sub.toLocaleString()}</span>
-                        <button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500 transition-colors">✕</button>
-                    </div>
+                    <div class="flex items-center gap-6"><span class="font-black text-slate-300 italic">x${item.Qty}</span><span class="font-bold text-rose-600 w-24 text-right italic">Rp ${sub.toLocaleString()}</span><button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500">✕</button></div>
                 </div>`;
             }).join('');
             document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
@@ -174,9 +169,9 @@
             `).join('');
         }
 
-        function renderInventory() {
+        function renderInventory(data = products) {
             const body = document.getElementById('inventory-table-body');
-            body.innerHTML = products.map(p => `
+            body.innerHTML = data.map(p => `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="p-5 text-[10px] font-bold text-slate-400 tracking-wider">${p.Barcode}</td>
                     <td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td>
@@ -184,6 +179,12 @@
                     <td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td>
                 </tr>
             `).join('');
+        }
+
+        function filterInventory() {
+            const val = document.getElementById('search-inventory').value.toLowerCase();
+            const filtered = products.filter(p => p.Nama_Barang.toLowerCase().includes(val) || p.Barcode.toString().includes(val));
+            renderInventory(filtered);
         }
 
         async function handleTransaction() {
@@ -202,7 +203,7 @@
                 const result = await res.json();
                 if (result.status === "success") {
                     const d = { invoice: result.invoice, items: [...cart], total, cash, change, date: new Date().toLocaleString() };
-                    showDigitalReceipt(d);
+                    showDigitalReceipt(d); // STRUK OTOMATIS MUNCUL DI SINI
                     cart = []; updateUI(); document.getElementById('cash-in').value = '';
                     fetchData();
                 }
@@ -213,11 +214,30 @@
         function showDigitalReceipt(d) {
             const modal = document.getElementById('receipt-modal');
             document.getElementById('receipt-content').innerHTML = `
-                <div class="text-center border-b border-dashed pb-4 mb-4"><h4 class="font-black text-rose-600 italic uppercase">ALI POS</h4><p class="text-[9px] text-slate-400 font-bold">${d.invoice}</p></div>
-                <div class="space-y-2 mb-4">${d.items.map(i => `<div class="flex justify-between text-[11px] font-bold"><span>${i.Nama_Barang} x${i.Qty}</span><span>${(i.Qty*i.Harga_Jual).toLocaleString()}</span></div>`).join('')}</div>
-                <div class="border-t border-dashed pt-4 flex justify-between font-black text-rose-600 uppercase italic"><span>Total</span><span>Rp ${d.total.toLocaleString()}</span></div>
-                <div class="mt-4 flex justify-between text-[10px] font-bold text-slate-400"><span>Tunai</span><span>Rp ${Number(d.cash).toLocaleString()}</span></div>
-                <div class="flex justify-between text-[10px] font-bold text-emerald-500"><span>Kembali</span><span>Rp ${d.change.toLocaleString()}</span></div>
+                <div class="text-center mb-8">
+                    <h4 class="font-black text-rose-600 text-2xl italic tracking-tighter">ALI POS</h4>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-1">Selesai</p>
+                </div>
+                <div class="space-y-3 mb-8">
+                    ${d.items.map(i => `
+                        <div class="flex justify-between text-[11px] font-bold">
+                            <span class="text-slate-500">${i.Nama_Barang} x${i.Qty}</span>
+                            <span class="text-slate-800">${(i.Qty*i.Harga_Jual).toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="border-t border-dashed border-slate-200 pt-6 space-y-2">
+                    <div class="flex justify-between font-black text-rose-600 text-lg uppercase italic tracking-tighter">
+                        <span>Total</span><span>Rp ${d.total.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-bold text-slate-400">
+                        <span>Tunai</span><span>Rp ${Number(d.cash).toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-bold text-emerald-500">
+                        <span>Kembali</span><span>Rp ${d.change.toLocaleString()}</span>
+                    </div>
+                </div>
+                <p class="text-[9px] text-slate-300 text-center mt-8 font-bold italic underline uppercase">${d.invoice}</p>
             `;
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
