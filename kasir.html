@@ -3,98 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI POS - Professional</title>
+    <title>POS System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; }
-        /* Reset Sidebar */
-        .sidebar-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem;
-            color: #94a3b8;
-            transition: 0.3s;
-            border-radius: 12px;
+        body { font-family: sans-serif; background: #f8fafc; }
+        .nav-icon { 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 12px; border-radius: 16px; color: #94a3b8; transition: 0.2s; 
         }
-        .sidebar-item:hover { background: #f8fafc; color: #e11d48; }
-        .sidebar-active { background: #e11d48 !important; color: white !important; }
+        .nav-icon:hover { background: #fff1f2; color: #e11d48; }
+        .nav-active { background: #e11d48 !important; color: white !important; shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3); }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 shadow-sm z-50">
-        <div class="font-bold text-rose-600 mb-4">ALI</div>
+    <aside class="w-20 bg-white border-r flex flex-col items-center py-6 shadow-sm z-50">
+        <div class="font-black text-rose-600 mb-10 tracking-tighter text-xl">ALI</div>
         
-        <nav class="flex flex-col gap-2 w-full px-2">
-            <a href="admin.html" class="sidebar-item" title="Dashboard">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            </a>
-            <a href="#" class="sidebar-item sidebar-active" title="Kasir">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-            </a>
-            <button onclick="toggleCatalog()" class="sidebar-item" title="Katalog">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        <nav class="flex flex-col gap-4 w-full px-2">
+            <button onclick="window.location.href='admin.html'" class="nav-icon" title="Dashboard">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             </button>
-            <a href="inventory.html" class="sidebar-item" title="Inventory">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            </a>
+            <button class="nav-icon nav-active" title="Kasir">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </button>
+            <button onclick="openModal('catalog-modal')" class="nav-icon" title="Katalog">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <button onclick="openModal('inventory-modal')" class="nav-icon" title="Inventory">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            </button>
         </nav>
 
-        <button onclick="logout()" class="mt-auto sidebar-item hover:text-rose-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+        <button onclick="logout()" class="mt-auto nav-icon hover:text-rose-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
         </button>
     </aside>
 
     <main class="flex-1 flex flex-col p-6 overflow-hidden">
-        <h2 class="text-2xl font-bold text-slate-800 mb-6 uppercase tracking-tight">Keranjang Belanja</h2>
-        <div class="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-            <div id="cart-list" class="flex-1 overflow-y-auto p-6">
-                </div>
-            <div class="p-4 bg-slate-50 border-t">
-                <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="Input Barcode / Scan..." class="w-full bg-white border border-slate-300 rounded-xl py-4 px-6 text-xl outline-none focus:ring-2 focus:ring-rose-500 transition-all">
+        <header class="mb-6">
+            <h2 class="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">KERANJANG</h2>
+        </header>
+
+        <div class="flex-1 bg-white rounded-[2rem] border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+            <div id="cart-list" class="flex-1 overflow-y-auto p-8 custom-scrollbar"></div>
+            <div class="p-6 bg-slate-50 border-t">
+                <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE DI SINI..." class="w-full bg-white border-2 border-slate-200 rounded-2xl py-5 px-8 text-2xl font-bold text-rose-600 outline-none focus:border-rose-500 transition-all">
             </div>
         </div>
     </main>
 
-    <aside class="w-80 bg-white border-l p-6 flex flex-col">
-        <div class="mb-8 text-right">
-            <p class="text-xs text-slate-400 font-bold uppercase mb-1">Total</p>
-            <h1 id="total-display" class="text-4xl font-bold text-rose-600">Rp 0</h1>
+    <aside class="w-96 bg-white border-l p-10 flex flex-col shadow-xl">
+        <div class="mb-10 text-right">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Transaksi</p>
+            <h1 id="total-display" class="text-5xl font-black text-rose-600 italic">Rp 0</h1>
         </div>
 
         <div class="space-y-6">
             <div class="grid grid-cols-3 gap-2">
-                <button onclick="setMethod('Cash')" id="m-cash" class="py-3 rounded-lg border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-xs">CASH</button>
-                <button onclick="setMethod('Transfer')" id="m-transfer" class="py-3 rounded-lg border border-slate-200 text-slate-400 font-bold text-xs">TF</button>
-                <button onclick="setMethod('QRIS')" id="m-qris" class="py-3 rounded-lg border border-slate-200 text-slate-400 font-bold text-xs">QRIS</button>
+                <button onclick="setMethod('Cash')" id="m-cash" class="py-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-xs transition-all">CASH</button>
+                <button onclick="setMethod('Transfer')" id="m-transfer" class="py-4 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs">TF</button>
+                <button onclick="setMethod('QRIS')" id="m-qris" class="py-4 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs">QRIS</button>
             </div>
 
-            <div class="bg-slate-100 p-6 rounded-xl">
-                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Bayar</label>
-                <input type="number" id="cash-in" oninput="calculateChange()" class="w-full bg-transparent text-2xl font-bold outline-none border-b border-slate-300 focus:border-rose-500 pb-1">
-                <div class="flex justify-between mt-4">
-                    <span class="text-xs text-slate-400">Kembali</span>
-                    <span id="change-display" class="font-bold text-emerald-600 text-lg">Rp 0</span>
+            <div class="bg-slate-900 p-8 rounded-[2rem] text-white">
+                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Tunai Diterima</label>
+                <input type="number" id="cash-in" oninput="calculateChange()" class="w-full bg-transparent text-4xl font-black outline-none border-b border-slate-700 focus:border-rose-500 pb-2 transition-all">
+                <div class="flex justify-between mt-6 items-end">
+                    <span class="text-xs text-slate-400">Kembalian</span>
+                    <span id="change-display" class="text-2xl font-bold text-emerald-400">Rp 0</span>
                 </div>
             </div>
 
-            <button onclick="handleTransaction()" id="btn-pay" class="w-full bg-rose-600 text-white font-bold py-5 rounded-xl shadow-lg hover:bg-rose-700 transition-all">SIMPAN TRANSAKSI</button>
+            <button onclick="handleTransaction()" id="btn-pay" class="w-full bg-rose-600 text-white font-black py-6 rounded-[2rem] text-xl shadow-lg hover:bg-rose-700 active:scale-95 transition-all">SIMPAN & CETAK</button>
         </div>
     </aside>
 
-    <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] p-10 flex items-center justify-center">
-        <div class="bg-white w-full max-w-4xl h-[80vh] rounded-3xl p-8 flex flex-col shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold uppercase">Katalog Produk</h3>
-                <button onclick="toggleCatalog()" class="text-slate-400 hover:text-black text-2xl">✕</button>
+    <div id="catalog-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] p-10 flex items-center justify-center">
+        <div class="bg-white w-full max-w-5xl h-[85vh] rounded-[3rem] p-10 flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black italic uppercase">Katalog Produk</h3>
+                <button onclick="closeModal('catalog-modal')" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full hover:bg-rose-500 hover:text-white transition-all">✕</button>
             </div>
-            <div id="catalog-grid" class="grid grid-cols-3 gap-4 overflow-y-auto pr-2"></div>
+            <div id="catalog-grid" class="grid grid-cols-4 gap-4 overflow-y-auto pr-2 custom-scrollbar"></div>
+        </div>
+    </div>
+
+    <div id="inventory-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] p-10 flex items-center justify-center">
+        <div class="bg-white w-full max-w-5xl h-[85vh] rounded-[3rem] p-10 flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black italic uppercase">Stock Inventory</h3>
+                <button onclick="closeModal('inventory-modal')" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full hover:bg-rose-500 hover:text-white transition-all">✕</button>
+            </div>
+            <div class="overflow-x-auto overflow-y-auto custom-scrollbar">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-white border-b-2 border-slate-100">
+                        <tr>
+                            <th class="py-4 font-bold text-slate-400 text-xs uppercase tracking-widest">Barcode</th>
+                            <th class="py-4 font-bold text-slate-400 text-xs uppercase tracking-widest">Nama Barang</th>
+                            <th class="py-4 font-bold text-slate-400 text-xs uppercase tracking-widest text-center">Stok</th>
+                            <th class="py-4 font-bold text-slate-400 text-xs uppercase tracking-widest text-right">Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body" class="divide-y divide-slate-50">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwDX934LugMyjWFT-CXrVYoEQDfajg_aBYBe1y5G2M8p6VM8ymX0Wc9Z9341KKxIpQgjQ/exec"; // Pastikan Link /exec terbaru
+        const API_URL = "https://script.google.com/macros/s/AKfycbwDX934LugMyjWFT-CXrVYoEQDfajg_aBYBe1y5G2M8p6VM8ymX0Wc9Z9341KKxIpQgjQ/exec"; 
         let products = [], cart = [], currentMethod = 'Cash';
 
         window.onload = fetchData;
@@ -104,7 +125,8 @@
                 const res = await fetch(`${API_URL}?action=getProducts`);
                 products = await res.json();
                 renderCatalog();
-            } catch (e) { alert("Gagal mengambil data produk dari server."); }
+                renderInventory();
+            } catch (e) { console.error("Gagal ambil data"); }
         }
 
         function handleManualInput(e) { if(e.key === 'Enter') { addToCart(e.target.value); e.target.value = ''; } }
@@ -122,11 +144,11 @@
             let total = 0;
             list.innerHTML = cart.map(item => {
                 const sub = item.Harga_Jual * item.Qty; total += sub;
-                return `<div class="flex justify-between py-4 border-b border-slate-100 items-center">
-                    <div><p class="font-bold text-slate-800">${item.Nama_Barang}</p><p class="text-[10px] text-slate-400">${item.Barcode}</p></div>
-                    <div class="flex items-center gap-8">
-                        <span class="font-bold text-slate-400">x${item.Qty}</span>
-                        <span class="font-bold text-rose-600">Rp ${sub.toLocaleString()}</span>
+                return `<div class="flex justify-between py-5 border-b border-slate-50 items-center">
+                    <div><p class="font-bold text-slate-800 uppercase tracking-tight">${item.Nama_Barang}</p><p class="text-[10px] text-slate-300 font-bold">${item.Barcode}</p></div>
+                    <div class="flex items-center gap-10">
+                        <span class="font-black text-slate-400 italic text-lg">x${item.Qty}</span>
+                        <span class="font-black text-rose-600 text-xl italic w-32 text-right">Rp ${sub.toLocaleString()}</span>
                     </div>
                 </div>`;
             }).join('');
@@ -140,22 +162,35 @@
             document.getElementById('change-display').innerText = `Rp ${Math.max(0, cash - total).toLocaleString()}`;
         }
 
-        function toggleCatalog() { document.getElementById('catalog-modal').classList.toggle('hidden'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function renderCatalog() {
             const grid = document.getElementById('catalog-grid');
             grid.innerHTML = products.map(p => `
-                <button onclick="addToCart('${p.Barcode}')" class="p-6 border border-slate-100 rounded-2xl text-left hover:border-rose-500 transition-all bg-slate-50">
-                    <p class="font-bold text-slate-800 h-10 overflow-hidden leading-tight mb-2">${p.Nama_Barang}</p>
-                    <p class="text-rose-600 font-bold">Rp ${p.Harga_Jual.toLocaleString()}</p>
+                <button onclick="addToCart('${p.Barcode}')" class="p-6 bg-slate-50 border border-slate-100 rounded-3xl text-left hover:border-rose-500 transition-all group">
+                    <p class="font-bold text-slate-800 h-10 overflow-hidden leading-tight mb-3 group-hover:text-rose-600 uppercase">${p.Nama_Barang}</p>
+                    <p class="text-rose-600 font-black italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
                 </button>
             `).join('');
         }
 
+        function renderInventory() {
+            const body = document.getElementById('inventory-table-body');
+            body.innerHTML = products.map(p => `
+                <tr>
+                    <td class="py-4 text-xs font-bold text-slate-400">${p.Barcode}</td>
+                    <td class="py-4 font-bold text-slate-700 uppercase">${p.Nama_Barang}</td>
+                    <td class="py-4 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'} rounded-full font-black text-xs">${p.Stok}</span></td>
+                    <td class="py-4 text-right font-bold text-slate-700">Rp ${p.Harga_Jual.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
         async function handleTransaction() {
-            if (cart.length === 0) return alert("Pilih barang terlebih dahulu.");
+            if (cart.length === 0) return;
             const btn = document.getElementById('btn-pay');
-            btn.disabled = true; btn.innerText = "SEDANG MENYIMPAN...";
+            btn.disabled = true; btn.innerText = "SAVING...";
 
             try {
                 const res = await fetch(API_URL, { 
@@ -164,23 +199,22 @@
                 });
                 const result = await res.json();
                 if (result.status === "success") {
-                    alert("Transaksi Berhasil!");
+                    alert("Berhasil!");
                     cart = []; updateUI();
                     document.getElementById('cash-in').value = '';
-                } else { alert("Gagal: " + result.message); }
-            } catch (e) { alert("Gagal terhubung ke server. Cek URL API atau koneksi internet."); }
-            finally { btn.disabled = false; btn.innerText = "SIMPAN TRANSAKSI"; }
+                    fetchData(); // Refresh stok
+                }
+            } catch (e) { alert("Error Server"); }
+            finally { btn.disabled = false; btn.innerText = "SIMPAN & CETAK"; }
         }
 
         function setMethod(m) {
             currentMethod = m;
-            ['m-cash', 'm-transfer', 'm-qris'].forEach(id => {
-                document.getElementById(id).className = "py-3 rounded-lg border border-slate-200 text-slate-400 font-bold text-xs";
-            });
-            document.getElementById('m-'+m.toLowerCase()).className = "py-3 rounded-lg border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-xs";
+            ['m-cash', 'm-transfer', 'm-qris'].forEach(id => document.getElementById(id).className = "py-4 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs");
+            document.getElementById('m-'+m.toLowerCase()).className = "py-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-xs";
         }
 
         function logout() { window.location.replace("index.html"); }
     </script>
 </body>
-</html>
+</html>f
