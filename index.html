@@ -13,17 +13,16 @@
         <div class="text-center mb-10">
             <div class="w-20 h-20 bg-rose-500 rounded-[2.5rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-xl shadow-rose-500/30">A</div>
             <h1 class="text-2xl font-black tracking-tighter uppercase text-slate-800">ALI <span class="text-rose-500">SYSTEM</span></h1>
-            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">Silahkan Login Terlebih Dahulu</p>
         </div>
         <div class="space-y-4">
-            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500/20 font-bold transition-all">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-500/20 font-bold transition-all">
+            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold transition-all">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold transition-all">
             <button onclick="prosesLogin()" id="btn" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all mt-6 uppercase tracking-widest text-xs">Masuk Dashboard</button>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwUeOgkJhhBILQ4IHL3TvvHCfknVgWfqe9Wdl2KgLlyG6LOpAQjD1HOo1BRDPBcE8WU6Q/exec"; // <--- GANTI INI
+        const API_URL = "https://script.google.com/macros/s/AKfycbzngfS166yOXl0-zRa7lHC2pijAvpfgPWQ5UAKl3D4J8B9DjCh4OoYclmGGw6mn-0NJYg/exec"; 
 
         async function prosesLogin() {
             const u = document.getElementById('user').value;
@@ -39,8 +38,8 @@
                 const r = await res.json();
                 
                 if (r.status === "success") {
-                    // SIMPAN SESSION
-                    sessionStorage.setItem('ali_session', JSON.stringify(r.user));
+                    // PENTING: Gunakan nama variabel yang unik agar tidak bentrok
+                    sessionStorage.setItem('ali_session_v4', JSON.stringify(r.user));
                     
                     const role = r.user.role.toLowerCase().trim();
                     if (role === "owner") { window.location.href = "owner.html"; }
