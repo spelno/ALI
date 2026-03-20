@@ -8,161 +8,29 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow: hidden; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 14px; border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.3s; }
         .nav-active { background: #e11d48 !important; color: white !important; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
-        .logout-btn { margin-top: auto; color: #94a3b8; padding: 14px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
-        .logout-btn:hover { color: #e11d48; }
-        .item-habis { background-color: #f1f5f9 !important; border-color: #e2e8f0 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.6; }
-        .thermal-font { font-family: 'Courier New', Courier, monospace; line-height: 1.2; }
-        #custom-toast { transform: translateX(-50%) translateY(100px); transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); position: fixed; bottom: 40px; left: 50%; z-index: 300; }
-        #custom-toast.show { transform: translateX(-50%) translateY(0); }
-        @media print {
-            body * { visibility: hidden; }
-            #receipt-modal, #receipt-modal *, #thermal-paper, #thermal-paper * { visibility: visible; }
-            #receipt-modal { position: absolute; left: 0; top: 0; width: 100%; background: white !important; display: block !important; }
-            #thermal-paper { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
-            @page { margin: 0; }
-        }
     </style>
 </head>
-<body class="h-screen flex" onclick="closeReceipt()">
-
-    <div id="custom-toast" class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
-        <div class="bg-rose-500 p-1 rounded-full"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="4" d="M6 18L18 6M6 6l12 12"></path></svg></div>
-        <span id="toast-msg" class="font-bold text-sm uppercase tracking-tight"></span>
-    </div>
-
-    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 z-50">
-        <div class="bg-rose-100 p-2 rounded-lg mb-8 text-rose-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-        </div>
-        <nav class="flex flex-col gap-4 w-full px-2">
-            <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-[8px] font-bold mt-1 uppercase text-center">Katalog</span></div>
-            <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span class="text-[8px] font-bold mt-1 uppercase text-center">Stok</span></div>
-        </nav>
-        <div onclick="window.top.location.href='https://script.google.com/macros/s/AKfycbz_E8E4S937W_BfUun24vI265oHwLg3U-D_XyO_XmI/exec'" class="logout-btn">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            <span class="text-[8px] font-bold mt-1 uppercase text-center">Keluar</span>
-        </div>
+<body class="flex h-screen overflow-hidden">
+    <aside class="w-24 bg-white border-r flex flex-col items-center py-8 gap-6 z-50">
+        <div class="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white font-black italic">A</div>
+        <div class="nav-btn nav-active"><small class="text-[8px] font-black uppercase mt-1">Kasir</small></div>
+        <div onclick="window.location.href='https://script.google.com/macros/s/AKfycbxrgdByXykW5NWaOLm6FgOMMKydJQE6G9v6By_aotRst3FV7TGEjnR7fv-8RDhtUYVnwQ/exec'" class="mt-auto nav-btn text-rose-500"><small class="text-[8px] font-black uppercase italic mt-1">Keluar</small></div>
     </aside>
 
-    <main class="flex-1 flex flex-col p-8 bg-white relative">
-        <div id="view-pos" class="flex flex-col h-full">
-            <header class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Kasir</h2>
-                <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter">Rp 0</h1>
-            </header>
-            <div class="flex-1 overflow-y-auto border-y border-slate-50 py-4" id="cart-list"></div>
-            <div class="mt-8 grid grid-cols-12 gap-4">
-                <div class="col-span-8"><input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold outline-none focus:border-rose-400"></div>
-                <div class="col-span-4 bg-slate-50 rounded-2xl border border-slate-100 px-6 flex flex-col justify-center"><span class="text-[9px] font-bold text-slate-400 uppercase">Tunai</span><input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full" placeholder="0"></div>
+    <main class="flex-1 flex flex-col p-8 overflow-hidden">
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Kasir Aktif</p>
+                <h2 class="text-2xl font-black text-slate-800 uppercase italic leading-none">Halo, <span id="nama-display" class="text-rose-500">User</span></h2>
             </div>
-            <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100"><span id="change-display" class="text-2xl font-black text-emerald-500 italic">Rp 0</span><button onclick="handleTransaction()" id="btn-pay" class="bg-rose-600 text-white font-black px-12 py-5 rounded-2xl hover:bg-rose-700 uppercase italic transition-all">Simpan & Cetak</button></div>
-        </div>
-
-        <div id="view-inventory" class="hidden flex flex-col h-full">
-            <header class="mb-6 flex justify-between items-end"><h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Inventory</h2><input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none focus:border-rose-400"></header>
-            <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl"><table class="w-full text-left"><thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-100"><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Barcode</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Produk</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-center">Stok</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-right">Harga</th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-50"></tbody></table></div>
-        </div>
-    </main>
-
-    <aside id="panel-catalog-aside" class="w-[340px] bg-white border-l flex flex-col overflow-hidden"><div class="p-6 border-b font-bold text-xs uppercase tracking-widest text-slate-400 italic">Katalog Barang</div><div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-slate-50/30"></div></aside>
-
-    <div id="receipt-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] items-center justify-center p-4"><div class="bg-white p-6 shadow-2xl thermal-font text-slate-800" id="thermal-paper"><div id="receipt-content"></div></div></div>
-
+            <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter italic">Rp 0</h1>
+        </header>
+        </main>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxNrhO9v2BGWTZzL0um_ljgeCYcQYhf1y5HpNIjqX5HCooMjocK655vcsAd81UamWMx3w/exec"; 
-        let products = [], cart = [], settings = {};
-
-        window.onload = async () => { await fetchSettings(); await fetchData(); };
-        function notify(msg) { const toast = document.getElementById('custom-toast'); document.getElementById('toast-msg').innerText = msg; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }
-        async function fetchSettings() { try { const res = await fetch(`${API_URL}?action=getSettings`); settings = await res.json(); } catch (e) {} }
-        async function fetchData() { try { const res = await fetch(`${API_URL}?action=getProducts`); products = await res.json(); renderCatalog(); renderInventory(); } catch (e) {} }
-
-        function switchMainView(view) {
-            document.getElementById('view-pos').classList.toggle('hidden', view !== 'pos');
-            document.getElementById('view-inventory').classList.toggle('hidden', view !== 'inventory');
-            document.getElementById('panel-catalog-aside').style.display = (view === 'inventory') ? 'none' : 'flex';
-            document.getElementById('tab-pos').className = view === 'pos' ? 'nav-btn nav-active' : 'nav-btn';
-            document.getElementById('tab-inventory').className = view === 'inventory' ? 'nav-btn nav-active' : 'nav-btn';
-            if(view === 'pos') setTimeout(() => document.getElementById('barcode-scan').focus(), 100);
-        }
-
-        function handleManualInput(e) { if(e.key === 'Enter') { addToCart(e.target.value); e.target.value = ''; } }
-        function addToCart(bc) {
-            const p = products.find(x => x.Barcode.toString() === bc.toString());
-            if(!p) { notify("BARCODE TIDAK ADA!"); return; }
-            if(p.Stok <= 0) { notify(`STOK ${p.Nama_Barang} HABIS!`); return; }
-            const existing = cart.find(c => c.Barcode.toString() === bc.toString());
-            if(existing) {
-                if(existing.Qty >= p.Stok) { notify(`MAKSIMAL STOK HANYA ${p.Stok}!`); return; }
-                existing.Qty += 1;
-            } else { cart.push({...p, Qty: 1}); }
-            updateUI();
-        }
-
-        function updateUI() {
-            const list = document.getElementById('cart-list');
-            let total = 0;
-            list.innerHTML = cart.map((item, idx) => {
-                const sub = item.Harga_Jual * item.Qty; total += sub;
-                return `<div class="flex justify-between items-center py-4 px-2 hover:bg-slate-50 rounded-xl"><div class="flex-1"><p class="font-bold text-sm uppercase">${item.Nama_Barang}</p><p class="text-[9px] text-slate-300 font-bold">${item.Barcode}</p></div><div class="flex items-center gap-6"><span class="font-black text-slate-300 italic">x${item.Qty}</span><span class="font-bold w-24 text-right">Rp ${sub.toLocaleString()}</span><button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500">✕</button></div></div>`;
-            }).join('');
-            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
-            calculateChange();
-        }
-
-        function removeItem(i) { cart.splice(i, 1); updateUI(); }
-        function calculateChange() {
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value || 0;
-            document.getElementById('change-display').innerText = `Rp ${Math.max(0, cash - total).toLocaleString()}`;
-        }
-
-        function renderCatalog() {
-            document.getElementById('catalog-grid').innerHTML = products.map(p => {
-                const habis = p.Stok <= 0;
-                return `<button onclick="${habis ? '' : `addToCart('${p.Barcode}')`}" class="p-4 bg-white border border-slate-100 rounded-2xl text-left transition-all shadow-sm ${habis ? 'item-habis' : 'hover:border-rose-400 group'}"><p class="font-bold text-[10px] uppercase h-8 overflow-hidden mb-1 leading-tight group-hover:text-rose-600">${p.Nama_Barang}</p><p class="text-rose-600 font-black text-[11px] italic">${habis ? 'HABIS' : `Rp ${p.Harga_Jual.toLocaleString()}`}</p></button>`;
-            }).join('');
-        }
-
-        function renderInventory(data = products) {
-            document.getElementById('inventory-table-body').innerHTML = data.map(p => `<tr class="hover:bg-slate-50"><td class="p-5 text-[10px] font-bold text-slate-400">${p.Barcode}</td><td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td><td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok <= p.Stok_Minimal ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td><td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td></tr>`).join('');
-        }
-
-        function filterInventory() {
-            const val = document.getElementById('search-inventory').value.toLowerCase();
-            renderInventory(products.filter(p => p.Nama_Barang.toLowerCase().includes(val) || p.Barcode.toString().includes(val)));
-        }
-
-        async function handleTransaction() {
-            if (cart.length === 0) return;
-            const btn = document.getElementById('btn-pay');
-            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-            const cash = document.getElementById('cash-in').value || 0;
-            btn.disabled = true; btn.innerText = "SIMPAN...";
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ cart: cart }) });
-                const result = await res.json();
-                if (result.status === "success") {
-                    showThermalReceipt({ invoice: result.invoice, items: [...cart], total, cash, change: Math.max(0, cash - total), date: new Date().toLocaleString('id-ID') });
-                    cart = []; updateUI(); document.getElementById('cash-in').value = ''; fetchData();
-                }
-            } catch (e) { notify("KONEKSI ERROR!"); }
-            finally { btn.disabled = false; btn.innerText = "Simpan & Cetak"; }
-        }
-
-        function showThermalReceipt(d) {
-            const paper = document.getElementById('thermal-paper');
-            paper.style.width = (settings.paperWidth == 80) ? "380px" : "280px";
-            document.getElementById('receipt-content').innerHTML = `<div class="text-center mb-4"><p class="font-black text-xl uppercase">${settings.storeName}</p><p class="text-[9px] uppercase">${settings.address}</p><p class="text-[9px] mt-1 italic text-slate-400">No: ${d.invoice}</p></div><div class="text-[10px] space-y-1 mb-2"><p class="flex justify-between"><span>Tgl:</span> <span>${d.date}</span></p><p class="border-t border-dashed border-slate-300 mt-2"></p></div><div class="text-[11px] space-y-2 mb-4">${d.items.map(i => `<div><p class="uppercase font-bold">${i.Nama_Barang}</p><div class="flex justify-between text-[10px] italic"><span>${i.Qty} x ${i.Harga_Jual.toLocaleString()}</span><span>${(i.Qty*i.Harga_Jual).toLocaleString()}</span></div></div>`).join('')}</div><div class="border-t border-dashed border-slate-300 pt-3 space-y-1 text-[11px]"><p class="flex justify-between font-black uppercase"><span>TOTAL</span> <span>Rp ${d.total.toLocaleString()}</span></p><p class="flex justify-between font-bold"><span>KEMBALI</span> <span>Rp ${d.change.toLocaleString()}</span></p></div><div class="text-center mt-6 text-[10px] font-bold uppercase border-t border-dashed border-slate-200 pt-4">${settings.footer}</div>`;
-            document.getElementById('receipt-modal').classList.remove('hidden');
-            document.getElementById('receipt-modal').classList.add('flex');
-            setTimeout(() => { window.print(); }, 500);
-        }
-
-        function closeReceipt() { 
-            const m = document.getElementById('receipt-modal');
-            if (!m.classList.contains('hidden')) { m.classList.add('hidden'); m.classList.remove('flex'); }
-        }
+        window.onload = () => {
+            const nama = sessionStorage.getItem('ali_user_name');
+            if(nama) document.getElementById('nama-display').innerText = nama;
+        };
     </script>
 </body>
 </html>
