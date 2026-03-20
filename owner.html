@@ -7,149 +7,88 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .ali-red { background-color: #e11d48; }
-        .ali-red-text { color: #e11d48; }
-        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; }
+        .ali-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="p-6 pb-24">
 
-    <aside class="w-24 bg-white border-r border-slate-200 flex flex-col items-center py-10 gap-10 shadow-sm">
-        <div class="text-2xl font-black ali-red-text italic tracking-tighter">ALI</div>
-        
-        <nav class="flex flex-col gap-6">
-            <button onclick="location.reload()" class="p-4 rounded-2xl bg-rose-50 text-rose-600 transition-all shadow-sm" title="Dashboard">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            </button>
-            <button onclick="window.location.href='kasir.html'" class="p-4 rounded-2xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all" title="Buka Kasir">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-            </button>
-        </nav>
-
-        <button onclick="logout()" class="mt-auto p-4 text-slate-300 hover:text-rose-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+    <header class="mb-10 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">OWNER PANEL</h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time Monitoring | Notes of OD</p>
+        </div>
+        <button onclick="refreshData()" class="p-3 bg-white rounded-2xl shadow-sm border text-slate-400 hover:text-rose-500 transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
         </button>
-    </aside>
+    </header>
 
-    <main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
-        <header class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-4xl font-black text-slate-800 tracking-tight italic uppercase">DASHBOARD OWNER</h1>
-                <p class="text-slate-400 font-bold text-sm tracking-widest uppercase mt-1">Laporan Real-time Toko Anda</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="text-right">
-                    <p id="owner-name" class="font-bold text-slate-800">-</p>
-                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Administrator</p>
-                </div>
-                <div class="w-12 h-12 bg-rose-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center font-bold text-rose-600">A</div>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Penjualan Hari Ini</p>
-                <h2 id="today-sales" class="text-3xl font-black text-slate-800">Rp 0</h2>
-            </div>
-            <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Transaksi</p>
-                <h2 id="today-count" class="text-3xl font-black text-slate-800">0</h2>
-            </div>
-            <div class="bg-amber-50 p-8 rounded-[2.5rem] border border-amber-200">
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Stock Warning</p>
-                    <span class="w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
-                </div>
-                <div id="stock-warning-list" class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-                    <p class="text-xs text-amber-400 italic">Memuat data stok...</p>
-                </div>
-            </div>
+    <section class="mb-8">
+        <div class="flex justify-between items-end mb-4 px-2">
+            <h2 class="font-black text-slate-800 italic uppercase">Stok Menipis</h2>
+            <span id="low-stock-count" class="bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full">0 ITEM</span>
         </div>
+        <div id="low-stock-list" class="space-y-3">
+            </div>
+    </section>
 
-        <div class="bg-white rounded-[2.5rem] card-shadow border border-slate-100 overflow-hidden">
-            <div class="p-8 border-b border-slate-50 flex justify-between items-center">
-                <h3 class="font-black text-slate-800 uppercase tracking-tighter italic">Transaksi Terakhir</h3>
-                <button onclick="fetchData()" class="text-xs font-bold text-rose-600 hover:underline">Refresh Data</button>
+    <section>
+        <h2 class="font-black text-slate-800 italic uppercase mb-4 px-2">Transaksi Hari Ini</h2>
+        <div id="transaction-list" class="space-y-4">
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <tr>
-                            <th class="px-8 py-5">Waktu</th>
-                            <th class="px-8 py-5">Produk</th>
-                            <th class="px-8 py-5">Qty</th>
-                            <th class="px-8 py-5">Total</th>
-                            <th class="px-8 py-5">Kasir</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transaction-table-body" class="text-sm font-bold text-slate-600">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+    </section>
+
+    <nav class="fixed bottom-6 left-6 right-6 bg-slate-900 text-white p-4 rounded-[2rem] flex justify-around items-center shadow-2xl border border-white/10 backdrop-blur-md">
+        <button onclick="refreshData()" class="text-rose-400 flex flex-col items-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="text-[8px] font-black mt-1 uppercase">Home</span>
+        </button>
+        <button onclick="window.open('https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit', '_blank')" class="text-slate-400 flex flex-col items-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="text-[8px] font-black mt-1 uppercase">Sheet</span>
+        </button>
+    </nav>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyYAwGJIKVKyph_9lNfo2FPxWVwL3Y0lMa8r2jY_uvdFWAcOV7yJ6LPTcmpdr0zRLXBEw/exec"; // GANTI DENGAN URL WEB APP ANDA
-        const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
+        const API_URL = "https://script.google.com/macros/s/AKfycbyjkm8RMgwOgXz9Pa3YOUhEl4CV1u2vAMBbjXtucJK-LaMn1SzSfphMin_6pzxiaGwhAA/exec"; // Masukkan URL Web App Anda
 
-        // Cek Login
-        if(!session || session.role !== 'Owner') {
-            // Jika bukan owner, tendang ke login
-            window.location.replace("index.html");
-        } else {
-            document.getElementById('owner-name').innerText = session.nama;
-        }
-
-        window.onload = () => {
-            fetchData();
-            loadStockWarning();
-        };
-
-        async function fetchData() {
+        async function refreshData() {
             try {
-                // Mengambil data transaksi dari script (Asumsi action getTransactions ada di GS)
-                const res = await fetch(`${API_URL}?action=getProducts`); // Sementara ambil produk
-                // Note: Di sini Anda bisa memanggil data transaksi real jika sudah ada action-nya
+                // Ambil Data Stok Menipis
+                const resLow = await fetch(`${API_URL}?action=getLowStock`);
+                const lowStock = await resLow.json();
+                renderLowStock(lowStock);
+
+                // Ambil Data Produk (Untuk simulasi transaksi hari ini)
+                // Catatan: Anda bisa menambah action 'getRecentSales' di GS jika ingin data lebih detail
             } catch (e) { console.error(e); }
         }
 
-        async function loadStockWarning() {
-            try {
-                const res = await fetch(`${API_URL}?action=getLowStock`);
-                const data = await res.json();
-                const container = document.getElementById('stock-warning-list');
-                
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p class="text-amber-500 text-xs italic text-center py-4">Semua stok aman ✓</p>';
-                    return;
-                }
+        function renderLowStock(data) {
+            const list = document.getElementById('low-stock-list');
+            document.getElementById('low-stock-count').innerText = `${data.length} ITEM`;
+            
+            if(data.length === 0) {
+                list.innerHTML = '<div class="ali-card p-6 text-center text-slate-400 text-xs font-bold uppercase italic">Semua stok aman ✅</div>';
+                return;
+            }
 
-                container.innerHTML = data.map(item => `
-                    <div class="flex justify-between items-center p-3 bg-white/60 rounded-2xl border border-amber-200 shadow-sm">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-800 truncate w-32">${item.nama}</span>
-                            <span class="text-[8px] font-black text-amber-600 uppercase">Min: ${item.min}</span>
-                        </div>
-                        <span class="px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black">
-                            ${item.stok}
-                        </span>
+            list.innerHTML = data.map(item => `
+                <div class="ali-card p-5 flex justify-between items-center border-l-4 border-l-rose-500">
+                    <div>
+                        <h4 class="font-black text-slate-800 text-sm uppercase">${item.nama}</h4>
+                        <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Stok Sekarang: ${item.stok}</p>
                     </div>
-                `).join('');
-            } catch (e) {
-                document.getElementById('stock-warning-list').innerHTML = '<p class="text-rose-400 text-xs italic">Gagal memuat data</p>';
-            }
+                    <div class="text-right">
+                        <span class="text-rose-500 font-black text-xs uppercase italic">Restock!</span>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function logout() {
-            if(confirm("Keluar dari Dashboard?")) {
-                sessionStorage.clear();
-                window.location.replace("index.html");
-            }
-        }
+        window.onload = refreshData;
     </script>
 </body>
 </html>
