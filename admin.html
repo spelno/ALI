@@ -1,129 +1,248 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI POS - Admin Center</title>
-    
-    <script>
-        // PROTEKSI LEBIH AMAN & STABIL
-        const rawSession = sessionStorage.getItem('ali_session_v4');
-        const session = rawSession ? JSON.parse(rawSession) : null;
-
-        // Cek apakah session ada DAN role-nya adalah admin (tanpa peduli huruf besar/kecil)
-        if (!session || !session.role || session.role.toLowerCase() !== "admin") { 
-            console.log("Akses Ditolak: Role tidak sesuai atau session kosong.");
-            window.location.replace("index.html"); 
-        }
-    </script>
-
+    <base target="_top">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; height: 100vh; overflow: hidden; }
-        .glass-dark { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
-        .text-full { white-space: normal; word-break: break-word; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
+        .tab-btn { padding: 12px 24px; font-weight: 700; font-size: 13px; text-transform: uppercase; color: #94a3b8; border-bottom: 3px solid transparent; transition: 0.3s; cursor: pointer; }
+        .tab-active { color: #e11d48; border-color: #e11d48; }
+        .card { background: white; border-radius: 24px; border: 1px solid #f1f5f9; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        input[type=number]::-webkit-inner-spin-button { opacity: 1; }
     </style>
 </head>
-<body class="p-4">
+<body class="min-h-screen">
 
-    <div class="h-full grid grid-cols-12 gap-4">
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-8">
+                <div class="py-5 font-black text-rose-600 text-xl italic tracking-tighter">ADMIN PANEL</div>
+                <div class="flex">
+                    <div onclick="switchTab('dash')" id="btn-dash" class="tab-btn tab-active">Dashboard</div>
+                    <div onclick="switchTab('prod')" id="btn-prod" class="tab-btn">Produk & Stok</div>
+                    <div onclick="switchTab('hist')" id="btn-hist" class="tab-btn">Riwayat</div>
+                    <div onclick="switchTab('sett')" id="btn-sett" class="tab-btn">Pengaturan</div>
+                </div>
+            </div>
+            <button onclick="window.top.location.href='https://script.google.com/macros/s/AKfycbz7X8Kz4psfi-Govu5oR-HtpaHJPjBzPsC0GtFzPTLl_eKrI-0gUZFPQ1rYXX2fSM-xQA/exec'" class="text-xs font-bold uppercase text-slate-400 hover:text-rose-600">Keluar</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
         
-        <main class="col-span-8 flex flex-col glass-dark rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <header class="p-8 border-b border-white/5 flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-black italic tracking-tighter uppercase">ALI <span class="text-rose-600">ADMIN</span></h1>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Status: <span class="text-rose-500 italic">Authorized Access</span></p>
+        <div id="tab-dash" class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card border-l-4 border-l-emerald-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Omzet Hari Ini</p>
+                    <h2 id="stat-omzet" class="text-3xl font-black text-slate-800 tracking-tighter">Rp 0</h2>
                 </div>
-                <div class="flex gap-4">
-                    <button onclick="window.location.href='kasir.html'" class="bg-rose-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/20">Buka Kasir ➔</button>
-                    <button onclick="logout()" class="p-2 text-slate-500 hover:text-rose-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    </button>
+                <div class="card border-l-4 border-l-blue-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Transaksi Hari Ini</p>
+                    <h2 id="stat-trans" class="text-3xl font-black text-slate-800 tracking-tighter">0</h2>
                 </div>
-            </header>
+                <div class="card border-l-4 border-l-rose-500 bg-rose-50/20">
+                    <p class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Stok Kritis</p>
+                    <h2 id="stat-kritis" class="text-3xl font-black text-rose-600 tracking-tighter">0</h2>
+                </div>
+            </div>
+        </div>
 
-            <div class="flex-1 overflow-y-auto custom-scroll p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black italic text-xs uppercase tracking-[0.2em] text-slate-500">Database Master Produk</h3>
-                    <input type="text" id="search" onkeyup="filterAdmin()" placeholder="Cari barang..." class="bg-slate-800 border-none px-6 py-3 rounded-xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-rose-600 w-64 shadow-inner">
+        <div id="tab-prod" class="hidden card overflow-hidden p-0">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold uppercase italic text-slate-800">Manajemen Inventori</h3>
+                <div class="relative">
+                    <input type="text" id="search-prod" oninput="filterTable()" placeholder="Cari nama/barcode..." class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-rose-400 w-64 shadow-sm">
                 </div>
-                
-                <div id="admin-list" class="space-y-3">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase border-b">
+                        <tr>
+                            <th class="p-5">Barcode</th>
+                            <th class="p-5">Nama Barang</th>
+                            <th class="p-5 text-center">Stok (Edit Langsung)</th>
+                            <th class="p-5 text-right">Harga Jual</th>
+                            <th class="p-5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y text-sm font-semibold">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-hist" class="hidden card overflow-hidden p-0">
+            <div class="p-6 border-b font-bold uppercase italic text-slate-800 bg-slate-50/50 flex justify-between">
+                <span>100 Transaksi Terakhir</span>
+                <span class="text-[10px] text-slate-400 uppercase italic">Urutan Terbaru</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase border-b">
+                        <tr><th class="p-5">Waktu</th><th class="p-5">Invoice</th><th class="p-5">Produk</th><th class="p-5 text-center">Qty</th><th class="p-5 text-right">Total</th></tr>
+                    </thead>
+                    <tbody id="history-body" class="divide-y">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-sett" class="hidden max-w-2xl mx-auto space-y-6">
+            <div class="card space-y-6">
+                <div class="border-b pb-4 flex items-center justify-between">
+                    <h3 class="font-bold uppercase italic text-slate-800">Pengaturan Toko</h3>
+                    <span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-1 rounded font-bold uppercase">Struk & Identitas</span>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Nama Toko</label>
+                        <input type="text" id="set-name" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
                     </div>
-            </div>
-        </main>
-
-        <aside class="col-span-4 flex flex-col glass-dark rounded-[2.5rem] overflow-hidden shadow-xl">
-            <div class="p-6 bg-rose-600/5 border-b border-white/5 flex justify-between items-center">
-                <h3 class="font-black italic text-[10px] uppercase text-rose-600 tracking-widest">Stok Menipis (<span id="count-low">0</span>)</h3>
-            </div>
-            <div id="low-stock-list" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Alamat Lengkap</label>
+                        <input type="text" id="set-addr" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Pesan Penutup (Footer)</label>
+                        <input type="text" id="set-foot" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
+                    </div>
                 </div>
-        </aside>
-
-    </div>
+                <button id="btn-save-settings" onclick="saveSettings()" class="w-full bg-rose-600 text-white font-black py-4 rounded-xl hover:bg-rose-700 transition shadow-lg shadow-rose-100 uppercase italic">Simpan Perubahan</button>
+            </div>
+        </div>
+    </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec"; // Pastikan ini URL /exec yang benar
+        const API_URL = "https://script.google.com/macros/s/AKfycbz7X8Kz4psfi-Govu5oR-HtpaHJPjBzPsC0GtFzPTLl_eKrI-0gUZFPQ1rYXX2fSM-xQA/exec"; 
         let allProducts = [];
 
-        window.onload = function() { loadData(); };
+        window.onload = () => { 
+            loadStats(); 
+            loadProducts(); 
+            loadHistory(); 
+            loadSettings(); 
+        };
 
-        async function loadData() {
+        function switchTab(t) {
+            ['dash', 'prod', 'hist', 'sett'].forEach(id => {
+                document.getElementById('tab-' + id).classList.add('hidden');
+                document.getElementById('btn-' + id).classList.remove('tab-active');
+            });
+            document.getElementById('tab-' + t).classList.remove('hidden');
+            document.getElementById('btn-' + t).classList.add('tab-active');
+        }
+
+        async function loadStats() {
             try {
-                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" }) });
-                const r = await res.json();
-                if(r.status === "success") {
-                    allProducts = r.products;
-                    renderAdmin(allProducts);
-                }
-            } catch(e) { console.error("Gagal Muat Data dari Sheets"); }
+                const res = await fetch(`${API_URL}?action=getAdminStats`);
+                const d = await res.json();
+                document.getElementById('stat-omzet').innerText = `Rp ${d.omzet.toLocaleString()}`;
+                document.getElementById('stat-trans').innerText = d.transaksi;
+                document.getElementById('stat-kritis').innerText = d.stokKritis;
+            } catch (e) { console.error("Gagal ambil stats"); }
         }
 
-        function renderAdmin(products) {
-            const container = document.getElementById('admin-list');
-            const lowContainer = document.getElementById('low-stock-list');
-            
-            // Render Database Utama
-            container.innerHTML = products.map(p => {
-                const hrg = Number(p[4]); // Harga Jual di Kolom E (Indeks 4)
-                const stok = Number(p[7]); // Stok Sekarang di Kolom H (Indeks 7)
+        async function loadProducts() {
+            try {
+                const res = await fetch(`${API_URL}?action=getProducts`);
+                allProducts = await res.json();
+                renderProductTable(allProducts);
+            } catch (e) { console.error("Gagal ambil produk"); }
+        }
+
+        function renderProductTable(data) {
+            document.getElementById('table-body').innerHTML = data.map(p => {
+                const isLow = p.Stok <= p.Stok_Minimal;
                 return `
-                <div class="flex items-center justify-between p-5 bg-slate-800/40 border border-white/5 rounded-[1.5rem] hover:border-rose-600/30 transition-all">
-                    <div class="flex-1 pr-4">
-                        <p class="text-xs font-black text-white uppercase text-full leading-tight">${p[1]}</p>
-                        <p class="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-tighter">Rp ${hrg.toLocaleString('id-ID')} | Stok: ${stok}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button class="w-10 h-10 bg-slate-800 rounded-xl text-slate-500 hover:bg-rose-600 hover:text-white transition-all font-black">+</button>
-                    </div>
-                </div>`;
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-5 font-mono text-xs text-slate-400">${p.Barcode}</td>
+                    <td class="p-5 uppercase">${p.Nama_Barang}</td>
+                    <td class="p-5 text-center">
+                        <input type="number" onchange="updateItem('${p.Barcode}', 'stock', this.value)" value="${p.Stok}" class="w-20 text-center border rounded-lg p-1.5 ${isLow ? 'bg-rose-50 text-rose-600 font-bold border-rose-300' : 'border-slate-200'}">
+                    </td>
+                    <td class="p-5 text-right italic font-bold">
+                        <input type="number" onchange="updateItem('${p.Barcode}', 'price', this.value)" value="${p.Harga_Jual}" class="w-28 text-right border border-slate-200 rounded-lg p-1.5">
+                    </td>
+                    <td class="p-5 text-center">
+                        <span id="status-${p.Barcode}" class="text-[9px] font-bold uppercase text-slate-300 tracking-tighter italic">Tersimpan</span>
+                    </td>
+                </tr>`;
             }).join('');
+        }
 
-            // Filter Radar Stok Rendah (di bawah 5)
-            const lowItems = products.filter(p => Number(p[7]) < 5);
-            document.getElementById('count-low').innerText = lowItems.length;
+        async function updateItem(bc, type, val) {
+            const statusEl = document.getElementById(`status-${bc}`);
+            statusEl.innerText = "Saving...";
+            statusEl.classList.remove('text-slate-300');
+            statusEl.classList.add('text-rose-500');
+
+            try {
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "updateProduct", barcode: bc, type: type, value: val }) 
+                });
+                statusEl.innerText = "Tersimpan";
+                statusEl.classList.replace('text-rose-500', 'text-emerald-500');
+                setTimeout(() => statusEl.classList.replace('text-emerald-500', 'text-slate-300'), 2000);
+                loadStats(); 
+            } catch (e) { 
+                statusEl.innerText = "Error!";
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch(`${API_URL}?action=getHistory`);
+                const data = await res.json();
+                document.getElementById('history-body').innerHTML = data.map(r => `
+                    <tr class="hover:bg-slate-50 italic">
+                        <td class="p-5 text-slate-400 text-xs">${new Date(r[0]).toLocaleString('id-ID')}</td>
+                        <td class="p-5 font-bold text-slate-600">${r[1]}</td>
+                        <td class="p-5 uppercase">${r[3]}</td>
+                        <td class="p-5 text-center font-black">x${r[4]}</td>
+                        <td class="p-5 text-right font-bold text-rose-600">Rp ${r[6].toLocaleString()}</td>
+                    </tr>`).join('');
+            } catch (e) { console.error("Gagal ambil riwayat"); }
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API_URL}?action=getSettings`);
+                const d = await res.json();
+                document.getElementById('set-name').value = d.storeName;
+                document.getElementById('set-addr').value = d.address;
+                document.getElementById('set-foot').value = d.footer;
+            } catch (e) { console.error("Gagal ambil pengaturan"); }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('btn-save-settings');
+            btn.disabled = true;
+            btn.innerText = "MENYIMPAN...";
             
-            lowContainer.innerHTML = lowItems.length ? lowItems.map(p => `
-                <div class="p-4 bg-slate-800/60 border border-rose-900/30 rounded-2xl flex justify-between items-center">
-                    <p class="text-[10px] font-black text-slate-300 uppercase text-full leading-tight flex-1 pr-2">${p[1]}</p>
-                    <span class="text-rose-600 font-black text-xs">${p[7]}</span>
-                </div>
-            `).join('') : `<p class="text-[10px] italic text-center text-slate-600 mt-10 uppercase font-black">Persediaan Aman</p>`;
+            const body = {
+                action: "updateSettings",
+                storeName: document.getElementById('set-name').value,
+                address: document.getElementById('set-addr').value,
+                footer: document.getElementById('set-foot').value
+            };
+            
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+                alert("Pengaturan Berhasil Diperbarui!");
+            } catch (e) {
+                alert("Gagal menyimpan!");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SIMPAN PERUBAHAN";
+            }
         }
 
-        function filterAdmin() {
-            const q = document.getElementById('search').value.toLowerCase();
-            const f = allProducts.filter(p => p[1].toLowerCase().includes(q));
-            renderAdmin(f);
-        }
-
-        function logout() {
-            sessionStorage.clear();
-            window.location.replace("index.html");
+        function filterTable() {
+            const val = document.getElementById('search-prod').value.toLowerCase();
+            const filtered = allProducts.filter(p => p.Nama_Barang.toLowerCase().includes(val) || p.Barcode.toString().includes(val));
+            renderProductTable(filtered);
         }
     </script>
 </body>
