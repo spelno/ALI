@@ -7,36 +7,37 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 14px; border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.3s; }
-        .nav-active { background: #e11d48 !important; color: white !important; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
+        .nav-active { background: #1e293b !important; color: white !important; }
         .thermal-font { font-family: 'Courier New', Courier, monospace; line-height: 1.2; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden" onclick="closeReceipt()">
 
     <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-4 z-50 shadow-sm" onclick="event.stopPropagation()">
-        <div class="font-black text-rose-600 mb-8 text-xl italic tracking-tighter uppercase">OD</div>
+        <div class="bg-slate-800 p-2 rounded-lg mb-8">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
         <nav class="flex flex-col gap-4 w-full px-2">
             <div onclick="switchMainView('pos')" id="tab-pos" class="nav-btn nav-active">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter text-center">Katalog</span>
+                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Katalog</span>
             </div>
             <div onclick="switchMainView('inventory')" id="tab-inventory" class="nav-btn">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter text-center">Stok</span>
+                <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter">Stok</span>
             </div>
         </nav>
     </aside>
 
     <main class="flex-1 flex flex-col p-8 overflow-hidden bg-white relative" onclick="event.stopPropagation()">
-        
         <div id="view-pos" class="flex flex-col h-full">
             <header class="flex justify-between items-center mb-6">
                 <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic">Kasir</h2>
-                <h1 id="total-display" class="text-5xl font-black text-rose-600 tracking-tighter">Rp 0</h1>
+                <h1 id="total-display" class="text-5xl font-black text-slate-800 tracking-tighter">Rp 0</h1>
             </header>
             <div class="flex-1 overflow-y-auto border-y border-slate-50 py-4" id="cart-list"></div>
             <div class="mt-8 grid grid-cols-12 gap-4">
-                <div class="col-span-8"><input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold text-rose-600 outline-none"></div>
+                <div class="col-span-8"><input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="SCAN BARCODE..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-5 px-8 text-2xl font-bold outline-none focus:border-slate-400"></div>
                 <div class="col-span-4 bg-slate-50 rounded-2xl border border-slate-100 px-6 flex flex-col justify-center">
                     <span class="text-[9px] font-bold text-slate-400 uppercase">Tunai</span>
                     <input type="number" id="cash-in" oninput="calculateChange()" class="bg-transparent font-bold text-xl outline-none w-full" placeholder="0">
@@ -44,21 +45,21 @@
             </div>
             <div class="mt-4 flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <span id="change-display" class="text-2xl font-black text-emerald-500 italic">Rp 0</span>
-                <button onclick="handleTransaction()" id="btn-pay" class="bg-rose-600 text-white font-black px-12 py-5 rounded-2xl shadow-lg hover:bg-rose-700 uppercase italic">Simpan & Cetak</button>
+                <button onclick="handleTransaction()" id="btn-pay" class="bg-slate-800 text-white font-black px-12 py-5 rounded-2xl hover:bg-black uppercase italic">Simpan & Cetak</button>
             </div>
         </div>
 
-        <div id="view-inventory" class="hidden flex flex-col h-full bg-white animate-in fade-in duration-300">
+        <div id="view-inventory" class="hidden flex flex-col h-full bg-white">
             <header class="mb-6 flex justify-between items-end">
-                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic text-slate-800">Inventory</h2>
-                <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none focus:border-rose-500">
+                <h2 class="text-3xl font-extrabold tracking-tighter uppercase italic">Inventory</h2>
+                <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari barang..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-sm font-semibold outline-none">
             </header>
             <div class="flex-1 overflow-y-auto border border-slate-100 rounded-3xl"><table class="w-full text-left"><thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-100"><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Barcode</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px]">Produk</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-center">Stok</th><th class="p-5 font-bold text-slate-400 uppercase text-[10px] text-right">Harga</th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-50"></tbody></table></div>
         </div>
     </main>
 
     <aside id="panel-catalog-aside" class="w-[340px] bg-white border-l flex flex-col overflow-hidden" onclick="event.stopPropagation()">
-        <div class="p-6 border-b font-bold text-xs uppercase tracking-widest text-slate-400 italic">Quick Access</div>
+        <div class="p-6 border-b font-bold text-xs uppercase tracking-widest text-slate-400 italic">Katalog Barang</div>
         <div id="catalog-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-slate-50/30"></div>
     </aside>
 
@@ -69,26 +70,23 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbytGpOxf5ahH-8hzsCUFzs0qwmxNQFq3B-mnn8ASS4pKYytpKNN1H1NzX9DZ6mux9hUTg/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbyHvPbES8n9vh5N--Kdbmk6aG5Uct7w-HLID9LwQpnfdPAWO4YIgV6T5oI1MPI_XZ5RFw/exec"; 
         let products = [], cart = [], settings = {};
 
         window.onload = async () => { await fetchSettings(); await fetchData(); };
 
         async function fetchSettings() {
-            try { const res = await fetch(`${API_URL}?action=getSettings`); settings = await res.json(); } catch (e) { console.log("Gagal ambil setting"); }
+            try { const res = await fetch(`${API_URL}?action=getSettings`); settings = await res.json(); } catch (e) {}
         }
 
         async function fetchData() {
-            try { const res = await fetch(`${API_URL}?action=getProducts`); products = await res.json(); renderCatalog(); renderInventory(); } catch (e) { console.log("Gagal ambil produk"); }
+            try { const res = await fetch(`${API_URL}?action=getProducts`); products = await res.json(); renderCatalog(); renderInventory(); } catch (e) {}
         }
 
         function switchMainView(view) {
             document.getElementById('view-pos').classList.toggle('hidden', view !== 'pos');
             document.getElementById('view-inventory').classList.toggle('hidden', view !== 'inventory');
-            
-            // LOGIKA OTOMATIS MENUTUP PANEL SAMPING
             document.getElementById('panel-catalog-aside').style.display = (view === 'inventory') ? 'none' : 'flex';
-            
             document.getElementById('tab-pos').className = view === 'pos' ? 'nav-btn nav-active' : 'nav-btn';
             document.getElementById('tab-inventory').className = view === 'inventory' ? 'nav-btn nav-active' : 'nav-btn';
             if(view === 'pos') setTimeout(() => document.getElementById('barcode-scan').focus(), 100);
@@ -111,7 +109,7 @@
                 const sub = item.Harga_Jual * item.Qty; total += sub;
                 return `<div class="flex justify-between items-center py-4 px-2 hover:bg-slate-50 rounded-xl">
                     <div class="flex-1"><p class="font-bold text-sm uppercase">${item.Nama_Barang}</p><p class="text-[9px] text-slate-300 font-bold">${item.Barcode}</p></div>
-                    <div class="flex items-center gap-6"><span class="font-black text-slate-300 italic">x${item.Qty}</span><span class="font-bold text-rose-600 w-24 text-right">Rp ${sub.toLocaleString()}</span><button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500">✕</button></div>
+                    <div class="flex items-center gap-6"><span class="font-black text-slate-300 italic">x${item.Qty}</span><span class="font-bold w-24 text-right">Rp ${sub.toLocaleString()}</span><button onclick="removeItem(${idx})" class="text-slate-200 hover:text-rose-500">✕</button></div>
                 </div>`;
             }).join('');
             document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
@@ -128,15 +126,15 @@
 
         function renderCatalog() {
             document.getElementById('catalog-grid').innerHTML = products.map(p => `
-                <button onclick="addToCart('${p.Barcode}')" class="p-4 bg-white border border-slate-100 rounded-2xl text-left hover:border-rose-500 transition-all shadow-sm">
+                <button onclick="addToCart('${p.Barcode}')" class="p-4 bg-white border border-slate-100 rounded-2xl text-left hover:border-slate-800 transition-all shadow-sm">
                     <p class="font-bold text-[10px] uppercase h-8 overflow-hidden mb-1 leading-tight">${p.Nama_Barang}</p>
-                    <p class="text-rose-600 font-black text-[11px] italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
+                    <p class="font-black text-[11px] italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
                 </button>
             `).join('');
         }
 
         function renderInventory(data = products) {
-            document.getElementById('inventory-table-body').innerHTML = data.map(p => `<tr class="hover:bg-slate-50 transition-colors"><td class="p-5 text-[10px] font-bold text-slate-400">${p.Barcode}</td><td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td><td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td><td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td></tr>`).join('');
+            document.getElementById('inventory-table-body').innerHTML = data.map(p => `<tr class="hover:bg-slate-50"><td class="p-5 text-[10px] font-bold text-slate-400">${p.Barcode}</td><td class="p-5 font-bold text-slate-700 uppercase text-xs">${p.Nama_Barang}</td><td class="p-5 text-center"><span class="px-3 py-1 ${p.Stok < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'} rounded-lg font-black text-xs">${p.Stok}</span></td><td class="p-5 text-right font-bold text-slate-700 text-xs italic">Rp ${p.Harga_Jual.toLocaleString()}</td></tr>`).join('');
         }
 
         function filterInventory() {
@@ -180,7 +178,7 @@
                 </div>
                 <div class="border-t border-dashed border-slate-300 pt-3 space-y-1 text-[11px]">
                     <p class="flex justify-between font-black"><span>TOTAL</span> <span>Rp ${d.total.toLocaleString()}</span></p>
-                    <p class="flex justify-between font-bold text-emerald-600"><span>KEMBALI</span> <span>Rp ${d.change.toLocaleString()}</span></p>
+                    <p class="flex justify-between font-bold"><span>KEMBALI</span> <span>Rp ${d.change.toLocaleString()}</span></p>
                 </div>
                 <div class="text-center mt-6 text-[10px] font-bold uppercase border-t border-dashed border-slate-200 pt-4">${settings.footer}</div>
             `;
