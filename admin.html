@@ -1,249 +1,197 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI POS - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
-        .tab-btn { padding: 12px 24px; font-weight: 700; font-size: 13px; text-transform: uppercase; color: #94a3b8; border-bottom: 3px solid transparent; transition: 0.3s; cursor: pointer; }
-        .tab-active { color: #e11d48; border-color: #e11d48; }
-        .card { background: white; border-radius: 24px; border: 1px solid #f1f5f9; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        input[type=number]::-webkit-inner-spin-button { opacity: 1; }
+        .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
+        .nav-active { background: #e11d48; color: white; box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        input:focus, select:focus { border-color: #e11d48 !important; outline: none; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="flex h-screen overflow-hidden">
 
-    <nav class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-8">
-                <div class="py-5 font-black text-rose-600 text-xl italic tracking-tighter">ADMIN PANEL</div>
-                <div class="flex">
-                    <div onclick="switchTab('dash')" id="btn-dash" class="tab-btn tab-active">Dashboard</div>
-                    <div onclick="switchTab('prod')" id="btn-prod" class="tab-btn">Produk & Stok</div>
-                    <div onclick="switchTab('hist')" id="btn-hist" class="tab-btn">Riwayat</div>
-                    <div onclick="switchTab('sett')" id="btn-sett" class="tab-btn">Pengaturan</div>
-                </div>
-            </div>
-            <button onclick="window.top.location.href='https://script.google.com/macros/s/AKfycbz7X8Kz4psfi-Govu5oR-HtpaHJPjBzPsC0GtFzPTLl_eKrI-0gUZFPQ1rYXX2fSM-xQA/exec'" class="text-xs font-bold uppercase text-slate-400 hover:text-rose-600">Keluar</button>
-        </div>
-    </nav>
+    <aside class="w-24 bg-white border-r flex flex-col items-center py-8 gap-8 z-50">
+        <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg">A</div>
+        <nav class="flex flex-col gap-6">
+            <button onclick="switchTab('inventory')" id="nav-inventory" class="p-4 rounded-2xl nav-active flex items-center justify-center transition-all">
+                <span class="text-[10px] font-black uppercase italic tracking-widest">STOK</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="p-4 rounded-2xl text-slate-400 flex items-center justify-center transition-all hover:text-rose-500">
+                <span class="text-[10px] font-black uppercase italic tracking-widest">SET</span>
+            </button>
+        </nav>
+        <button onclick="logout()" class="mt-auto p-4 text-rose-500 font-black text-[10px] uppercase italic hover:scale-110 transition-all">Keluar</button>
+    </aside>
 
-    <main class="max-w-7xl mx-auto p-8">
+    <main class="flex-1 flex flex-col p-10 overflow-hidden">
         
-        <div id="tab-dash" class="space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="card border-l-4 border-l-emerald-500">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Omzet Hari Ini</p>
-                    <h2 id="stat-omzet" class="text-3xl font-black text-slate-800 tracking-tighter">Rp 0</h2>
-                </div>
-                <div class="card border-l-4 border-l-blue-500">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Transaksi Hari Ini</p>
-                    <h2 id="stat-trans" class="text-3xl font-black text-slate-800 tracking-tighter">0</h2>
-                </div>
-                <div class="card border-l-4 border-l-rose-500 bg-rose-50/20">
-                    <p class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Stok Kritis</p>
-                    <h2 id="stat-kritis" class="text-3xl font-black text-rose-600 tracking-tighter">0</h2>
-                </div>
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin Control Panel</p>
+                <h2 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter">Halo, <span id="display-nama" class="text-rose-600">...</span></h2>
             </div>
-        </div>
+        </header>
 
-        <div id="tab-prod" class="hidden card overflow-hidden p-0">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
-                <h3 class="font-bold uppercase italic text-slate-800">Manajemen Inventori</h3>
-                <div class="relative">
-                    <input type="text" id="search-prod" oninput="filterTable()" placeholder="Cari nama/barcode..." class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-rose-400 w-64 shadow-sm">
+        <section id="tab-inventory" class="flex flex-col flex-1 overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <input type="text" id="search-inventory" oninput="filterInventory()" placeholder="Cari nama barang..." 
+                    class="w-80 p-4 bg-white border border-slate-200 rounded-2xl font-bold shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase italic">Menampilkan <span id="count-prod" class="text-rose-600">0</span> Produk</p>
+            </div>
+            
+            <div class="bg-white rounded-[2.5rem] border shadow-sm flex-1 overflow-hidden flex flex-col">
+                <div class="grid grid-cols-5 p-6 border-b text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <div class="col-span-1">Barcode</div>
+                    <div class="col-span-2">Nama Barang</div>
+                    <div class="col-span-1 text-center">Stok</div>
+                    <div class="col-span-1 text-right">Harga Jual</div>
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase border-b">
-                        <tr>
-                            <th class="p-5">Barcode</th>
-                            <th class="p-5">Nama Barang</th>
-                            <th class="p-5 text-center">Stok (Edit Langsung)</th>
-                            <th class="p-5 text-right">Harga Jual</th>
-                            <th class="p-5 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="divide-y text-sm font-semibold">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-hist" class="hidden card overflow-hidden p-0">
-            <div class="p-6 border-b font-bold uppercase italic text-slate-800 bg-slate-50/50 flex justify-between">
-                <span>100 Transaksi Terakhir</span>
-                <span class="text-[10px] text-slate-400 uppercase italic">Urutan Terbaru</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase border-b">
-                        <tr><th class="p-5">Waktu</th><th class="p-5">Invoice</th><th class="p-5">Produk</th><th class="p-5 text-center">Qty</th><th class="p-5 text-right">Total</th></tr>
-                    </thead>
-                    <tbody id="history-body" class="divide-y">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-sett" class="hidden max-w-2xl mx-auto space-y-6">
-            <div class="card space-y-6">
-                <div class="border-b pb-4 flex items-center justify-between">
-                    <h3 class="font-bold uppercase italic text-slate-800">Pengaturan Toko</h3>
-                    <span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-1 rounded font-bold uppercase">Struk & Identitas</span>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">Nama Toko</label>
-                        <input type="text" id="set-name" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
+                <div id="inventory-list" class="flex-1 overflow-y-auto p-2 custom-scrollbar">
                     </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">Alamat Lengkap</label>
-                        <input type="text" id="set-addr" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
+            </div>
+        </section>
+
+        <section id="tab-settings" class="hidden flex-1 overflow-y-auto pr-4 custom-scrollbar">
+            <div class="max-w-2xl bg-white rounded-[3rem] border p-12 shadow-sm space-y-8">
+                <h3 class="text-xl font-black uppercase italic tracking-widest text-slate-800 border-b pb-4">Konfigurasi Toko</h3>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-4">Nama Toko (B2)</label>
+                        <input type="text" id="set-name" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold">
                     </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">Pesan Penutup (Footer)</label>
-                        <input type="text" id="set-foot" class="w-full border border-slate-200 rounded-xl p-3 mt-1 outline-none focus:border-rose-400 font-bold bg-slate-50">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-4">Lebar Kertas (B5)</label>
+                        <select id="set-paper" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold">
+                            <option value="58mm">58mm (Kecil)</option>
+                            <option value="80mm">80mm (Besar)</option>
+                        </select>
                     </div>
                 </div>
-                <button id="btn-save-settings" onclick="saveSettings()" class="w-full bg-rose-600 text-white font-black py-4 rounded-xl hover:bg-rose-700 transition shadow-lg shadow-rose-100 uppercase italic">Simpan Perubahan</button>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-4">Alamat Toko (B3)</label>
+                    <input type="text" id="set-address" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-4">Footer Struk (B4)</label>
+                    <textarea id="set-footer" rows="3" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold"></textarea>
+                </div>
+
+                <button onclick="simpanPengaturan()" id="btn-save-settings" 
+                    class="ali-gradient text-white font-black py-5 px-10 rounded-2xl shadow-xl shadow-rose-200 uppercase italic tracking-widest active:scale-95 transition-all text-sm">
+                    Simpan Perubahan
+                </button>
             </div>
-        </div>
+        </section>
+
     </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz7X8Kz4psfi-Govu5oR-HtpaHJPjBzPsC0GtFzPTLl_eKrI-0gUZFPQ1rYXX2fSM-xQA/exec"; 
-        let allProducts = [];
+        /** 1. SATPAM & SESSION **/
+        const SCRIPT_URL = "<?= scriptUrl ?>";
+        let sessionData = JSON.parse(localStorage.getItem('ali_user_session'));
+        let inventoryData = [];
 
-        window.onload = () => { 
-            loadStats(); 
-            loadProducts(); 
-            loadHistory(); 
-            loadSettings(); 
+        window.onload = () => {
+            if (!sessionData || sessionData.role !== 'admin') {
+                alert("Area Terbatas!");
+                logout();
+                return;
+            }
+            document.getElementById('display-nama').innerText = sessionData.nama;
+            loadSemuaData();
         };
 
-        function switchTab(t) {
-            ['dash', 'prod', 'hist', 'sett'].forEach(id => {
-                document.getElementById('tab-' + id).classList.add('hidden');
-                document.getElementById('btn-' + id).classList.remove('tab-active');
-            });
-            document.getElementById('tab-' + t).classList.remove('hidden');
-            document.getElementById('btn-' + t).classList.add('tab-active');
+        /** 2. AMBIL DATA DARI SERVER **/
+        function loadSemuaData() {
+            // Ambil Produk
+            google.script.run.withSuccessHandler(res => {
+                inventoryData = res;
+                renderInventory(res);
+            }).getGlobalData("products");
+
+            // Ambil Pengaturan (B2-B5)
+            google.script.run.withSuccessHandler(s => {
+                document.getElementById('set-name').value = s.storeName;
+                document.getElementById('set-address').value = s.address;
+                document.getElementById('set-footer').value = s.footer;
+                document.getElementById('set-paper').value = s.paperSize;
+            }).getGlobalData("settings");
         }
 
-        async function loadStats() {
-            try {
-                const res = await fetch(`${API_URL}?action=getAdminStats`);
-                const d = await res.json();
-                document.getElementById('stat-omzet').innerText = `Rp ${d.omzet.toLocaleString()}`;
-                document.getElementById('stat-trans').innerText = d.transaksi;
-                document.getElementById('stat-kritis').innerText = d.stokKritis;
-            } catch (e) { console.error("Gagal ambil stats"); }
+        /** 3. LOGIKA INVENTORY **/
+        function renderInventory(data) {
+            const list = document.getElementById('inventory-list');
+            document.getElementById('count-prod').innerText = data.length;
+            list.innerHTML = data.map(p => `
+                <div class="grid grid-cols-5 p-6 border-b border-slate-50 items-center hover:bg-slate-50 transition-colors rounded-2xl">
+                    <div class="col-span-1 font-bold text-rose-500 text-xs">${p.Barcode}</div>
+                    <div class="col-span-2 font-black uppercase italic text-sm">${p.Nama_Barang}</div>
+                    <div class="col-span-1 text-center font-bold">
+                        <span class="px-3 py-1 rounded-full ${p.Stok <= 5 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'} text-[10px]">
+                            ${p.Stok}
+                        </span>
+                    </div>
+                    <div class="col-span-1 text-right font-black italic">Rp ${p.Harga_Jual.toLocaleString()}</div>
+                </div>
+            `).join('');
         }
 
-        async function loadProducts() {
-            try {
-                const res = await fetch(`${API_URL}?action=getProducts`);
-                allProducts = await res.json();
-                renderProductTable(allProducts);
-            } catch (e) { console.error("Gagal ambil produk"); }
+        function filterInventory() {
+            const val = document.getElementById('search-inventory').value.toLowerCase();
+            const filtered = inventoryData.filter(p => p.Nama_Barang.toLowerCase().includes(val) || p.Barcode.toString().includes(val));
+            renderInventory(filtered);
         }
 
-        function renderProductTable(data) {
-            document.getElementById('table-body').innerHTML = data.map(p => {
-                const isLow = p.Stok <= p.Stok_Minimal;
-                return `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-5 font-mono text-xs text-slate-400">${p.Barcode}</td>
-                    <td class="p-5 uppercase">${p.Nama_Barang}</td>
-                    <td class="p-5 text-center">
-                        <input type="number" onchange="updateItem('${p.Barcode}', 'stock', this.value)" value="${p.Stok}" class="w-20 text-center border rounded-lg p-1.5 ${isLow ? 'bg-rose-50 text-rose-600 font-bold border-rose-300' : 'border-slate-200'}">
-                    </td>
-                    <td class="p-5 text-right italic font-bold">
-                        <input type="number" onchange="updateItem('${p.Barcode}', 'price', this.value)" value="${p.Harga_Jual}" class="w-28 text-right border border-slate-200 rounded-lg p-1.5">
-                    </td>
-                    <td class="p-5 text-center">
-                        <span id="status-${p.Barcode}" class="text-[9px] font-bold uppercase text-slate-300 tracking-tighter italic">Tersimpan</span>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-
-        async function updateItem(bc, type, val) {
-            const statusEl = document.getElementById(`status-${bc}`);
-            statusEl.innerText = "Saving...";
-            statusEl.classList.remove('text-slate-300');
-            statusEl.classList.add('text-rose-500');
-
-            try {
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: "updateProduct", barcode: bc, type: type, value: val }) 
-                });
-                statusEl.innerText = "Tersimpan";
-                statusEl.classList.replace('text-rose-500', 'text-emerald-500');
-                setTimeout(() => statusEl.classList.replace('text-emerald-500', 'text-slate-300'), 2000);
-                loadStats(); 
-            } catch (e) { 
-                statusEl.innerText = "Error!";
-            }
-        }
-
-        async function loadHistory() {
-            try {
-                const res = await fetch(`${API_URL}?action=getHistory`);
-                const data = await res.json();
-                document.getElementById('history-body').innerHTML = data.map(r => `
-                    <tr class="hover:bg-slate-50 italic">
-                        <td class="p-5 text-slate-400 text-xs">${new Date(r[0]).toLocaleString('id-ID')}</td>
-                        <td class="p-5 font-bold text-slate-600">${r[1]}</td>
-                        <td class="p-5 uppercase">${r[3]}</td>
-                        <td class="p-5 text-center font-black">x${r[4]}</td>
-                        <td class="p-5 text-right font-bold text-rose-600">Rp ${r[6].toLocaleString()}</td>
-                    </tr>`).join('');
-            } catch (e) { console.error("Gagal ambil riwayat"); }
-        }
-
-        async function loadSettings() {
-            try {
-                const res = await fetch(`${API_URL}?action=getSettings`);
-                const d = await res.json();
-                document.getElementById('set-name').value = d.storeName;
-                document.getElementById('set-addr').value = d.address;
-                document.getElementById('set-foot').value = d.footer;
-            } catch (e) { console.error("Gagal ambil pengaturan"); }
-        }
-
-        async function saveSettings() {
+        /** 4. LOGIKA SIMPAN PENGATURAN (API POST) **/
+        async function simpanPengaturan() {
             const btn = document.getElementById('btn-save-settings');
-            btn.disabled = true;
-            btn.innerText = "MENYIMPAN...";
-            
-            const body = {
+            const data = {
                 action: "updateSettings",
                 storeName: document.getElementById('set-name').value,
-                address: document.getElementById('set-addr').value,
-                footer: document.getElementById('set-foot').value
+                address: document.getElementById('set-address').value,
+                footer: document.getElementById('set-footer').value,
+                paperSize: document.getElementById('set-paper').value
             };
-            
+
+            btn.innerText = "MENYIMPAN...";
+            btn.disabled = true;
+
             try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
-                alert("Pengaturan Berhasil Diperbarui!");
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+                const result = await res.json();
+                if (result.status === "success") {
+                    alert("Pengaturan B2-B5 Berhasil Diperbarui!");
+                    location.reload();
+                }
             } catch (e) {
-                alert("Gagal menyimpan!");
-            } finally {
+                alert("Gagal terhubung ke server!");
+                btn.innerText = "Simpan Perubahan";
                 btn.disabled = false;
-                btn.innerText = "SIMPAN PERUBAHAN";
             }
         }
 
-        function filterTable() {
-            const val = document.getElementById('search-prod').value.toLowerCase();
-            const filtered = allProducts.filter(p => p.Nama_Barang.toLowerCase().includes(val) || p.Barcode.toString().includes(val));
-            renderProductTable(filtered);
+        /** 5. NAVIGATION HELPER **/
+        function switchTab(tab) {
+            document.getElementById('tab-inventory').classList.add('hidden');
+            document.getElementById('tab-settings').classList.add('hidden');
+            document.getElementById('nav-inventory').classList.replace('nav-active', 'text-slate-400');
+            document.getElementById('nav-settings').classList.replace('nav-active', 'text-slate-400');
+            
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            document.getElementById('nav-' + tab).classList.replace('text-slate-400', 'nav-active');
         }
+
+        function logout() { localStorage.removeItem('ali_user_session'); window.location.href = SCRIPT_URL; }
     </script>
 </body>
 </html>
