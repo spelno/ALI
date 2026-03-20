@@ -1,82 +1,257 @@
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxCpN-bBvYv1QFkn_yYwmB9X1a0Bz4uUDESpQhmlLt7iiiZzcVu5DRUGlD7hNPNrkIpGQ/exec"; 
-    let products = [], cart = [], currentMethod = 'Cash';
-    const session = JSON.parse(sessionStorage.getItem('ali_session_v4'));
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALI - POS Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .ali-red { background: #e11d48; }
+        .ali-red-text { color: #e11d48; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
 
-    window.onload = () => { 
-        if(!session) window.location.replace("index.html");
-        document.getElementById('u-name').innerText = session.nama;
-        fetchData(); 
-        startRemoteScanListener(); 
-    };
+    <audio id="beep-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+    <audio id="error-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
 
-    async function fetchData() {
-        const res = await fetch(`${API_URL}?action=getProducts`);
-        products = await res.json();
-    }
+    <aside class="w-20 bg-white border-r flex flex-col items-center py-8 gap-6 shadow-sm">
+        <div class="text-xl font-black ali-red-text italic mb-4">ALI</div>
+        <button onclick="showScannerQR()" class="p-4 rounded-2xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all" title="Hubungkan HP sebagai Scanner">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v1m0 11v1m4-8h1m-11 0h1m3-2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        </button>
+        <button onclick="logout()" class="mt-auto p-4 text-slate-300 hover:text-rose-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M17 16l4-4m4 4H7"></path></svg>
+        </button>
+    </aside>
 
-    function startRemoteScanListener() {
-        setInterval(async () => {
-            try {
-                const res = await fetch(`${API_URL}?action=checkScan`);
-                const data = await res.json();
-                if (data.barcode && data.barcode !== "-") addToCart(data.barcode);
-            } catch(e) {}
-        }, 1500);
-    }
+    <main class="flex-1 flex flex-col p-8 overflow-hidden">
+        <header class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-4xl font-black text-slate-800 italic uppercase tracking-tighter">KERANJANG</h2>
+                <p class="text-slate-400 font-bold text-xs uppercase tracking-widest"><span id="u-name">-</span> | KASIR</p>
+            </div>
+            <button onclick="clearCart()" class="text-[10px] font-black text-slate-400 hover:text-rose-600 uppercase tracking-widest">Kosongkan List</button>
+        </header>
 
-    function addToCart(bc) {
-        const p = products.find(x => x.Barcode == bc);
-        if(!p) return document.getElementById('error-sound').play();
+        <div class="flex-1 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+            <div id="cart-list" class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                </div>
+            <div class="p-6 bg-slate-50 border-t">
+                <input type="text" id="barcode-scan" onkeypress="handleManualInput(event)" autofocus placeholder="INPUT BARCODE / SCAN..." class="w-full bg-white border-2 border-slate-200 rounded-2xl py-5 px-10 text-2xl font-black ali-red-text focus:border-rose-500 outline-none shadow-inner transition-all">
+            </div>
+        </div>
+    </main>
+
+    <aside class="w-96 bg-white border-l p-10 flex flex-col shadow-lg overflow-y-auto custom-scrollbar">
+        <div class="text-center mb-10">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Belanja</p>
+            <h1 id="total-display" class="text-5xl font-black ali-red-text tracking-tighter">Rp 0</h1>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Metode Bayar</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setMethod('Cash')" id="m-cash" class="py-4 rounded-2xl border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-[10px]">CASH</button>
+                    <button onclick="setMethod('Transfer')" id="m-transfer" class="py-4 rounded-2xl border-2 border-slate-100 text-slate-400 font-bold text-[10px]">TRANSFER</button>
+                    <button onclick="setMethod('QRIS')" id="m-qris" class="py-4 rounded-2xl border-2 border-slate-100 text-slate-400 font-bold text-[10px]">QRIS</button>
+                </div>
+            </div>
+
+            <div id="evidence-area" class="hidden p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                <input type="file" id="evidence-file" accept="image/*" class="hidden" onchange="updateFileName()">
+                <button onclick="document.getElementById('evidence-file').click()" class="bg-white px-4 py-3 rounded-xl border-2 border-slate-100 text-[10px] font-black text-slate-600 hover:border-rose-500 shadow-sm uppercase">Ambil Foto Bukti</button>
+                <p id="file-name" class="text-[9px] text-emerald-500 mt-2 font-black italic"></p>
+            </div>
+
+            <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Nominal Bayar</label>
+                <input type="number" id="cash-in" oninput="calculateChange()" class="w-full bg-transparent text-4xl font-black outline-none border-b-2 border-slate-200 focus:border-rose-500 py-2">
+                <div class="flex justify-between mt-6 text-emerald-600">
+                    <span class="text-[10px] font-black uppercase tracking-widest">Kembali</span>
+                    <span id="change-display" class="text-2xl font-black">Rp 0</span>
+                </div>
+            </div>
+
+            <button onclick="handleTransaction()" id="btn-pay" class="w-full ali-red hover:bg-rose-700 text-white font-black py-7 rounded-[2rem] text-xl shadow-xl transition-all active:scale-95 uppercase italic">Selesai & Cetak</button>
+        </div>
+    </aside>
+
+    <div id="scanner-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[2000] p-6 backdrop-blur-sm">
+        <div class="bg-white p-10 rounded-[3rem] max-w-sm w-full text-center shadow-2xl">
+            <h3 class="font-black italic text-xl mb-2 uppercase tracking-tighter text-slate-800">Hubungkan HP</h3>
+            <p class="text-[10px] text-slate-400 font-bold mb-8 uppercase tracking-widest">Scan QR ini dengan HP untuk mulai Scan Barang</p>
+            <div class="bg-slate-50 p-6 rounded-[2.5rem] mb-8 flex justify-center border shadow-inner">
+                <img id="qr-image" src="" class="w-48 h-48 mix-blend-multiply">
+            </div>
+            <button onclick="toggleScannerModal()" class="w-full py-5 bg-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzAtQlqtucU0-xWFgiLw169Bv1YU_6TpZBxNY2b8vG0UgXXuD2Mo-cjwH2Kiw_Se6iDDQ/exec"; // Ganti dengan URL Web App Anda
+        const SCANNER_URL = "https://script.google.com/macros/s/AKfycbzPtMdQSevT_SBT1iJKxsgC5a9z11Doacx4WPR5bTv5cQzYc3SSitbEv9qTosFzbt0ObA/exec?mode=scanner";
         
-        document.getElementById('beep-sound').play();
-        const ex = cart.find(c => c.Barcode == bc);
-        if(ex) ex.Qty++; else cart.push({...p, Qty: 1});
-        updateUI();
-    }
+        let products = [], cart = [], currentMethod = 'Cash';
+        const session = JSON.parse(sessionStorage.getItem('ali_session_v4')) || {nama: "Admin"};
 
-    async function handleTransaction() {
-        if (cart.length === 0) return alert("Keranjang kosong!");
-        const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
-        const cashIn = document.getElementById('cash-in').value;
-
-        if (currentMethod === 'Cash' && (!cashIn || cashIn < total)) return alert("Uang kurang!");
-
-        const btn = document.getElementById('btn-pay');
-        btn.disabled = true; btn.innerText = "PROSES...";
-
-        let imgBase = null;
-        const fileInput = document.getElementById('evidence-file');
-        if (fileInput.files.length > 0) imgBase = await toBase64(fileInput.files[0]);
-
-        const payload = {
-            action: "saveTransaction",
-            admin: session.nama,
-            method: currentMethod,
-            cart: cart,
-            imageContent: imgBase ? imgBase.split(',')[1] : null
+        window.onload = () => {
+            document.getElementById('u-name').innerText = session.nama;
+            fetchData();
+            startRemoteScanListener();
         };
 
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const result = await res.json();
-            if (result.status === "success") {
-                alert("Berhasil!");
-                cart = []; updateUI();
-                document.getElementById('cash-in').value = '';
+        async function fetchData() {
+            try {
+                const res = await fetch(`${API_URL}?action=getProducts`);
+                products = await res.json();
+            } catch (e) { console.error("Gagal ambil data produk"); }
+        }
+
+        function startRemoteScanListener() {
+            setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_URL}?action=checkScan`);
+                    const data = await res.json();
+                    if (data.barcode && data.barcode !== "-") addToCart(data.barcode);
+                } catch(e) {}
+            }, 1500);
+        }
+
+        function handleManualInput(e) {
+            if(e.key === 'Enter') {
+                addToCart(e.target.value);
+                e.target.value = '';
             }
-        } catch (e) { alert("Koneksi Error!"); }
-        finally { btn.disabled = false; btn.innerText = "Selesai & Cetak"; }
-    }
+        }
 
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    }
+        function addToCart(bc) {
+            const p = products.find(x => x.Barcode.toString() === bc.toString());
+            if(!p) {
+                document.getElementById('error-sound').play();
+                return;
+            }
+            document.getElementById('beep-sound').play();
+            const ex = cart.find(c => c.Barcode === bc);
+            if(ex) ex.Qty++; else cart.push({...p, Qty: 1});
+            updateUI();
+        }
 
-    // Fungsi UI lainnya (updateUI, setMethod, dll) tetap seperti sebelumnya
-</script>
+        function updateUI() {
+            const list = document.getElementById('cart-list');
+            let total = 0;
+            list.innerHTML = cart.map((item) => {
+                const sub = item.Harga_Jual * item.Qty; total += sub;
+                return `<div class="flex justify-between py-6 border-b border-slate-50 items-center">
+                    <div class="flex-1"><b class="text-slate-800 text-lg">${item.Nama_Barang}</b><br><small class="text-[10px] font-black text-slate-300 uppercase">${item.Barcode}</small></div>
+                    <div class="w-24 text-center font-black text-slate-400">x${item.Qty}</div>
+                    <div class="w-40 text-right ali-red-text font-black text-xl tracking-tighter">Rp ${sub.toLocaleString()}</div>
+                </div>`;
+            }).join('');
+            document.getElementById('total-display').innerText = `Rp ${total.toLocaleString()}`;
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            const cash = document.getElementById('cash-in').value || 0;
+            const change = Math.max(0, cash - total);
+            document.getElementById('change-display').innerText = `Rp ${change.toLocaleString()}`;
+        }
+
+        function setMethod(m) {
+            currentMethod = m;
+            ['m-cash', 'm-transfer', 'm-qris'].forEach(id => {
+                document.getElementById(id).className = "py-4 rounded-2xl border-2 border-slate-100 text-slate-400 font-bold text-[10px]";
+            });
+            document.getElementById('m-'+m.toLowerCase()).className = "py-4 rounded-2xl border-2 border-rose-500 bg-rose-50 text-rose-600 font-bold text-[10px] shadow-sm";
+            document.getElementById('evidence-area').classList.toggle('hidden', m === 'Cash');
+            if(m !== 'Cash') document.getElementById('cash-in').value = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            calculateChange();
+        }
+
+        function showScannerQR() {
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(SCANNER_URL)}`;
+            toggleScannerModal();
+        }
+
+        function toggleScannerModal() { document.getElementById('scanner-modal').classList.toggle('hidden'); }
+        function updateFileName() { document.getElementById('file-name').innerText = "✓ FOTO BUKTI SIAP"; }
+
+        async function handleTransaction() {
+            if (cart.length === 0) return alert("Keranjang kosong!");
+            const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
+            const cashIn = document.getElementById('cash-in').value;
+
+            if (currentMethod === 'Cash' && (!cashIn || cashIn < total)) return alert("Uang kurang!");
+
+            const btn = document.getElementById('btn-pay');
+            btn.disabled = true; btn.innerText = "MENYIMPAN...";
+
+            let imgBase = null;
+            const fileInput = document.getElementById('evidence-file');
+            if (fileInput.files.length > 0) imgBase = await toBase64(fileInput.files[0]);
+
+            const payload = {
+                action: "saveTransaction",
+                admin: session.nama,
+                method: currentMethod,
+                cart: cart,
+                imageContent: imgBase ? imgBase.split(',')[1] : null
+            };
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status === "success") {
+                    alert("Berhasil!");
+                    printReceipt(result.invoice, total, cashIn);
+                    cart = []; updateUI();
+                    document.getElementById('cash-in').value = '';
+                    document.getElementById('file-name').innerText = '';
+                }
+            } catch (e) { alert("Gagal Simpan ke Server!"); }
+            finally { btn.disabled = false; btn.innerText = "Selesai & Cetak"; }
+        }
+
+        function printReceipt(inv, total, cash) {
+            const receiptWindow = window.open('', '_blank', 'width=300,height=600');
+            let itemsHtml = cart.map(i => `${i.Nama_Barang.substring(0,20)}\n${i.Qty} x ${i.Harga_Jual} = ${i.Qty*i.Harga_Jual}`).join('\n');
+            const content = `
+                NOTES OF OD - B&B COMFORT
+                --------------------------
+                No: ${inv}
+                Kasir: ${session.nama}
+                --------------------------
+                ${itemsHtml}
+                --------------------------
+                TOTAL   : Rp ${total.toLocaleString()}
+                BAYAR   : Rp ${parseInt(cash).toLocaleString()}
+                KEMBALI : Rp ${(cash-total).toLocaleString()}
+                --------------------------
+                Terima Kasih!
+            `;
+            receiptWindow.document.write('<pre style="font-family:monospace;font-size:12px">' + content + '</pre>');
+            receiptWindow.print();
+            receiptWindow.close();
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function clearCart() { if(confirm("Bersihkan list?")) { cart = []; updateUI(); } }
+        function logout() { sessionStorage.clear(); window.location.replace("index.html"); }
+    </script>
+</body>
+</html>
