@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALI POS - Authentication</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
@@ -11,41 +10,33 @@
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6 text-slate-800">
+<body class="h-screen flex items-center justify-center p-6">
     <div class="bg-white w-full max-w-sm p-10 rounded-[3rem] shadow-2xl">
         <div class="text-center mb-10">
             <div class="w-20 h-20 ali-gradient rounded-[2.5rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
             <h1 class="text-2xl font-black tracking-tighter uppercase">ALI <span class="text-rose-500">POS</span></h1>
-            <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">Portal Akses Sistem</p>
         </div>
         <div class="space-y-4">
-            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold focus:ring-2 focus:ring-rose-500/20">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 outline-none border border-slate-100 font-bold focus:ring-2 focus:ring-rose-500/20">
-            <button onclick="prosesLogin()" id="btn-login" class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase tracking-widest text-sm">Masuk Dashboard</button>
+            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 font-bold outline-none focus:border-rose-500 transition-all">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 font-bold outline-none focus:border-rose-500 transition-all">
+            <button onclick="prosesLogin()" id="btn" class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-4 uppercase tracking-widest text-sm">Masuk Dashboard</button>
         </div>
     </div>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzqzi7a0IOi6UzMgGTNVmwAgUCcc-vZCHrhURTPt0dNUEFimZnEdkKfN9c7J1hHgFPeUA/exec"; // GANTI DENGAN LINK .exec
-
+        const API_URL = "<?= ScriptApp.getService().getUrl() ?>";
         async function prosesLogin() {
             const u = document.getElementById('user').value;
             const p = document.getElementById('pass').value;
-            const b = document.getElementById('btn-login');
-
             if(!u || !p) return alert("Lengkapi data!");
-            b.innerText = "VERIFIKASI...";
-            b.disabled = true;
-
+            const b = document.getElementById('btn');
+            b.innerText = "VERIFIKASI..."; b.disabled = true;
             try {
                 const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "login", username: u, password: p }) });
                 const r = await res.json();
                 if (r.status === "success") {
-                    sessionStorage.setItem('ali_user_session', JSON.stringify(r.user));
+                    sessionStorage.setItem('ali_user', JSON.stringify(r.user));
                     window.location.href = API_URL + "?action=" + r.user.role;
-                } else {
-                    alert(r.message);
-                    b.innerText = "Masuk Dashboard"; b.disabled = false;
-                }
+                } else { alert(r.message); b.innerText = "Masuk Dashboard"; b.disabled = false; }
             } catch (e) { alert("Error Koneksi!"); b.innerText = "Masuk Dashboard"; b.disabled = false; }
         }
     </script>
