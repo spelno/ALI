@@ -13,67 +13,56 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow: hidden; }
         .main-layout { display: grid; grid-template-columns: 1fr 350px; height: 100vh; }
         .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="main-layout">
         <main class="flex flex-col bg-white overflow-hidden shadow-sm">
-            <header class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+            <header class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-extrabold italic tracking-tighter text-slate-900 uppercase">ALI <span class="text-rose-600">POS</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Kasir: <span id="nama-admin" class="text-slate-900">---</span></p>
+                    <h1 class="text-xl font-black italic tracking-tighter text-slate-900 uppercase">ALI <span class="text-rose-600">POS</span></h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Kasir: <span id="nama-admin">---</span></p>
                 </div>
                 <button onclick="logout()" class="p-3 text-slate-300 hover:text-rose-500 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 </button>
             </header>
 
-            <div id="cart-items" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-3">
-                <div id="empty-state" class="h-full flex flex-col items-center justify-center opacity-20 italic font-bold">
-                    <p>BELUM ADA PESANAN</p>
+            <div id="cart-items" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-4">
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center opacity-30 italic">
+                    <p class="font-bold tracking-widest">KERANJANG KOSONG</p>
                 </div>
             </div>
 
-            <footer class="p-6 border-t border-slate-100 bg-slate-50/50">
+            <footer class="p-6 border-t border-slate-100 bg-slate-50/80">
                 <div class="flex justify-between items-center mb-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Bayar</span>
+                    <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Total Belanja</span>
                     <span id="total-tagihan" class="text-4xl font-black italic tracking-tighter text-slate-900">Rp 0</span>
                 </div>
-                <button onclick="prosesBayar()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-rose-600 transition-all active:scale-95">
-                    PROSES PEMBAYARAN
+                <button onclick="prosesBayar()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-rose-600 transition-all active:scale-95">
+                    BAYAR SEKARANG
                 </button>
             </footer>
         </main>
 
         <aside class="flex flex-col border-l border-slate-200 overflow-hidden bg-slate-50">
             <div class="p-4 bg-white border-b border-slate-200">
-                <input type="text" id="search" placeholder="Cari nama barang..." class="w-full bg-slate-100 border-none px-4 py-3 rounded-xl text-xs font-bold focus:ring-2 focus:ring-rose-500 outline-none">
+                <input type="text" id="search" onkeyup="filterProduct()" placeholder="Cari barang..." class="w-full bg-slate-100 border-none px-4 py-3 rounded-xl text-xs font-bold focus:ring-2 focus:ring-rose-500 outline-none">
             </div>
-            
             <div id="product-list" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
                 </div>
         </aside>
     </div>
 
-    <div id="modal-bayar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-        <div class="bg-white p-8 rounded-[2rem] w-full max-w-sm shadow-2xl">
-            <h2 class="text-lg font-black italic uppercase mb-6 text-center">Pilih <span class="text-rose-600">Metode</span></h2>
-            <div class="space-y-3">
-                <button onclick="finalSimpan('Cash')" class="w-full p-4 bg-slate-50 rounded-2xl font-bold hover:bg-rose-50 hover:text-rose-600 transition-all text-sm border border-slate-100 flex justify-between">💵 Tunai / Cash <span>➔</span></button>
-                <button onclick="finalSimpan('QRIS')" class="w-full p-4 bg-slate-50 rounded-2xl font-bold hover:bg-rose-50 hover:text-rose-600 transition-all text-sm border border-slate-100 flex justify-between">📱 QRIS / E-Wallet <span>➔</span></button>
-            </div>
-            <button onclick="document.getElementById('modal-bayar').classList.add('hidden')" class="w-full mt-6 text-[9px] font-black uppercase text-slate-400 tracking-widest text-center">Batal</button>
-        </div>
-    </div>
-
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxrJ3CEUi6noMxD-7dDdPieSNHg_1pcvG-V37rpQsGzv8itNAOus2x_hICslTeHXJx3aA/exec"; 
         let cart = [];
+        let allProducts = [];
 
         window.onload = function() {
             document.getElementById('nama-admin').innerText = session.nama;
@@ -84,8 +73,11 @@
             try {
                 const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAdminData" }) });
                 const r = await res.json();
-                if(r.status === "success") renderProducts(r.products);
-            } catch(e) { console.error("Error Load"); }
+                if(r.status === "success") {
+                    allProducts = r.products;
+                    renderProducts(allProducts);
+                }
+            } catch(e) { console.error("Data gagal dimuat"); }
         }
 
         function renderProducts(products) {
@@ -94,14 +86,21 @@
                 <div onclick="addToCart('${p[0]}', '${p[1]}', ${p[6]})" class="bg-white p-4 rounded-xl border border-slate-200 hover:border-rose-400 cursor-pointer shadow-sm transition-all active:scale-95 group">
                     <h4 class="font-bold text-[10px] text-slate-800 leading-tight uppercase mb-1 group-hover:text-rose-600">${p[1]}</h4>
                     <p class="text-slate-900 font-black text-xs italic">Rp ${Number(p[6]).toLocaleString('id-ID')}</p>
-                    <p class="text-[8px] text-slate-400 font-bold uppercase mt-1">Stok: ${p[7]}</p>
                 </div>
             `).join('');
         }
 
         function addToCart(barcode, nama, harga) {
             const idx = cart.findIndex(i => i.barcode === barcode);
-            if(idx > -1) { cart[idx].qty++; } else { cart.push({ barcode, nama, harga: Number(harga), qty: 1 }); }
+            // Pastikan harga adalah Number agar ribuan muncul
+            const fixedHarga = Number(harga);
+
+            if(idx > -1) {
+                cart[idx].qty++;
+            } else {
+                cart.push({ barcode, nama, harga: fixedHarga, qty: 1 });
+            }
+            // Trigger update UI secara paksa
             updateUI();
         }
 
@@ -110,29 +109,32 @@
             const empty = document.getElementById('empty-state');
             let total = 0;
             
-            if(cart.length === 0) { empty.classList.remove('hidden'); container.innerHTML = ""; } 
-            else { empty.classList.add('hidden'); }
-
-            container.innerHTML = cart.map((item, i) => {
-                const subtotal = item.harga * item.qty;
-                total += subtotal;
-                return `
-                <div class="flex justify-between items-center p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                    <div class="flex-1">
-                        <p class="text-xs font-black text-slate-800 uppercase">${item.nama}</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">@ Rp ${item.harga.toLocaleString('id-ID')}</p>
-                    </div>
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center bg-slate-100 rounded-lg p-1">
-                            <button onclick="adjustQty(${i},-1)" class="w-8 h-8 font-bold text-slate-500 hover:text-rose-600">-</button>
-                            <span class="w-8 text-center text-xs font-black">${item.qty}</span>
-                            <button onclick="adjustQty(${i},1)" class="w-8 h-8 font-bold text-slate-500 hover:text-rose-600">+</button>
+            if(cart.length === 0) { 
+                empty.style.display = "flex";
+                container.innerHTML = ""; 
+                container.appendChild(empty);
+            } else { 
+                empty.style.display = "none";
+                container.innerHTML = cart.map((item, i) => {
+                    const subtotal = item.harga * item.qty;
+                    total += subtotal;
+                    return `
+                    <div class="flex justify-between items-center p-4 border border-slate-100 rounded-2xl bg-white shadow-sm">
+                        <div class="flex-1">
+                            <p class="text-xs font-black text-slate-800 uppercase">${item.nama}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">@ Rp ${item.harga.toLocaleString('id-ID')}</p>
                         </div>
-                        <p class="w-28 text-right font-black text-sm italic text-rose-600">Rp ${subtotal.toLocaleString('id-ID')}</p>
-                    </div>
-                </div>`;
-            }).join('');
-            
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center bg-slate-100 rounded-lg p-1">
+                                <button onclick="adjustQty(${i},-1)" class="w-8 h-8 font-bold text-slate-500 hover:text-rose-600">-</button>
+                                <span class="w-8 text-center text-xs font-black">${item.qty}</span>
+                                <button onclick="adjustQty(${i},1)" class="w-8 h-8 font-bold text-slate-500 hover:text-rose-600">+</button>
+                            </div>
+                            <p class="w-28 text-right font-black text-sm italic text-rose-600">Rp ${subtotal.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
             document.getElementById('total-tagihan').innerText = "Rp " + total.toLocaleString('id-ID');
         }
 
@@ -142,9 +144,10 @@
             updateUI();
         }
 
-        function prosesBayar() {
-            if(cart.length === 0) return alert("Pilih barang terlebih dahulu!");
-            document.getElementById('modal-bayar').classList.remove('hidden');
+        function filterProduct() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = allProducts.filter(p => p[1].toLowerCase().includes(query));
+            renderProducts(filtered);
         }
 
         function logout() {
@@ -152,9 +155,10 @@
             window.location.replace("index.html");
         }
 
-        function finalSimpan(metode) {
-            alert("Berhasil disimpan oleh: " + session.nama);
-            cart = []; updateUI(); document.getElementById('modal-bayar').classList.add('hidden');
+        function prosesBayar() {
+            if(cart.length === 0) return alert("Keranjang masih kosong!");
+            // Tambahkan modal bayar atau kirim data ke GS di sini
+            alert("Memproses total: Rp " + document.getElementById('total-tagihan').innerText);
         }
     </script>
 </body>
