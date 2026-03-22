@@ -3,95 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes of OD - Owner Dashboard</title>
+    <title>Owner Dashboard - ALI RETAIL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; min-height: 100vh; overflow-x: hidden; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(225, 29, 72, 0.2); border-radius: 10px; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-print-area, #receipt-print-area * { visibility: visible; }
+            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100% !important; color: black; background: white; }
+        }
     </style>
 </head>
-<body class="p-6 lg:p-12 min-h-screen">
+<body class="p-8 lg:p-16">
 
-    <header class="max-w-6xl mx-auto flex justify-between items-center mb-12">
+    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
         <div>
-            <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] mb-1 italic">Notes of OD Intelligence</p>
-            <h1 class="text-3xl font-black uppercase italic tracking-tighter">Business <span class="text-rose-500">Overview</span></h1>
+            <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.5em] italic mb-2">Executive Overview</p>
+            <h1 class="text-4xl font-black italic tracking-tighter uppercase">Ali <span class="text-rose-500">Retail.</span></h1>
         </div>
-        <button onclick="logout()" class="text-[10px] font-bold text-slate-500 uppercase border border-slate-700 px-6 py-2 rounded-full hover:bg-rose-600 transition-all">Keluar</button>
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Logged in as</p>
+                <p id="owner-name" class="font-black italic text-rose-500 uppercase tracking-tight">Owner</p>
+            </div>
+            <button onclick="logout()" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-600 hover:text-white transition-all shadow-xl">Sign Out</button>
+        </div>
     </header>
 
-    <main class="max-w-6xl mx-auto space-y-8">
+    <main class="max-w-7xl mx-auto space-y-12">
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="glass-card p-8 rounded-[3rem]">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Omzet Hari Ini</p>
-                <h2 id="txt-sales" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
+            <div class="glass-card p-10 rounded-[3rem] border-l-4 border-rose-600 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-rose-600/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-rose-600/10 transition-all"></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest">Sales Today</p>
+                <h2 id="txt-sales" class="text-5xl font-black italic tracking-tighter text-white">Rp 0</h2>
             </div>
-            <div class="glass-card p-8 rounded-[3rem]">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Biaya Operasional</p>
-                <h2 id="txt-expense" class="text-4xl font-black italic tracking-tighter text-rose-500">Rp 0</h2>
-            </div>
-            <div class="ali-gradient p-8 rounded-[3rem] shadow-2xl">
-                <p class="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">Laba Bersih</p>
-                <h2 id="txt-profit" class="text-4xl font-black italic tracking-tighter">Rp 0</h2>
+            
+            <div class="md:col-span-2 glass-card p-10 rounded-[3rem] flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black text-rose-500 uppercase italic tracking-widest">Date Report</p>
+                    <h3 id="date-label" class="text-2xl font-black italic uppercase text-slate-200 tracking-tighter">Loading...</h3>
+                </div>
+                <div class="flex gap-4">
+                    <input type="date" id="filter-date" onchange="loadHistory()" 
+                        class="bg-slate-800/50 border border-white/10 p-4 rounded-2xl font-bold outline-none focus:border-rose-500 transition-all text-xs">
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="glass-card p-10 rounded-[3.5rem] h-[500px] flex flex-col">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic">History Pengeluaran</h3>
-                <div id="expense-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
-                    </div>
+        <div class="glass-card rounded-[3.5rem] overflow-hidden">
+            <div class="p-10 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-xs font-black uppercase italic tracking-widest text-slate-400">Transaction Logs</h3>
+                <div class="flex gap-2">
+                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+                    <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+                </div>
             </div>
-
-            <div class="glass-card p-10 rounded-[3.5rem] h-[500px] flex flex-col">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic">Barang Harus Re-Stok</h3>
-                <div id="low-stock-list" class="flex-1 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
-                    </div>
-                <button onclick="loadOwnerData()" class="mt-8 w-full bg-white/5 py-4 rounded-2xl text-[10px] font-black uppercase border border-white/5 hover:bg-white/10 transition-all">Sinkron Ulang</button>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                            <th class="px-10 py-6">Time</th>
+                            <th class="px-10 py-6">Invoice ID</th>
+                            <th class="px-10 py-6">Method</th>
+                            <th class="px-10 py-6 text-right">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list" class="divide-y divide-white/5 font-bold text-sm">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="empty-state" class="hidden py-32 text-center opacity-20">
+                <p class="italic uppercase font-black tracking-[0.5em] text-xs">No Records Found</p>
             </div>
         </div>
     </main>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiNW5vNecg58Ygss7QXbzNgPN7g1-Vv3y406lgQW07GytmpCwVSHqqvDuksY1QyEickA/exec";
+    <div id="modal-receipt" onclick="this.classList.add('hidden')" class="hidden fixed inset-0 bg-slate-950/95 z-[500] flex items-center justify-center p-6 cursor-pointer">
+        <div id="receipt-print-area" class="bg-white p-12 font-mono text-[11px] text-slate-800 shadow-2xl rounded-sm">
+            <div class="text-center mb-6">
+                <h2 class="font-black text-lg uppercase tracking-tighter" id="r-store-name">...</h2>
+                <p id="r-address" class="text-[9px] opacity-60"></p>
+                <div class="border-b-2 border-dashed my-6 border-slate-200"></div>
+            </div>
+            <div class="flex justify-between mb-2"><span>INV:</span><span id="r-inv" class="font-bold"></span></div>
+            <div class="flex justify-between mb-6"><span>STAFF:</span><span id="r-cashier"></span></div>
+            <div id="r-items" class="space-y-3 mb-6 border-y border-dashed py-6 border-slate-200"></div>
+            <div class="mb-6">
+                <div class="flex justify-between font-black text-sm"><span>TOTAL:</span><span id="r-total"></span></div>
+                <div class="flex justify-between text-[9px] opacity-60"><span>METHOD:</span><span id="r-method"></span></div>
+            </div>
+            <p id="r-footer" class="text-center italic text-[9px] opacity-50"></p>
+        </div>
+    </div>
 
-        window.onload = () => {
-            const session = JSON.parse(localStorage.getItem('ali_session'));
-            if (!session || session.role !== 'owner') window.location.href = "index.html";
-            loadOwnerData();
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXGshDNy244dPlfL_wm8wHCPyg4vk9Schw9gzFlwK8CEApsOpXc7kxfA5bK5P-0A5N/exec";
+        let storeSettings = {};
+        let session = JSON.parse(localStorage.getItem('ali_session'));
+
+        window.onload = async () => {
+            // SECURITY CHECK: Must be Owner
+            if (!session || session.role !== 'owner') {
+                window.location.href = "index.html";
+                return;
+            }
+            document.getElementById('owner-name').innerText = session.nama;
+
+            // Set Today's Date (WITA)
+            const today = new Date().toLocaleDateString('en-CA', {timeZone: 'Asia/Makassar'});
+            document.getElementById('filter-date').value = today;
+
+            await Promise.all([loadSettings(), loadStats(), loadHistory()]);
         };
 
-        async function loadOwnerData() {
-            try {
-                const res = await fetch(SCRIPT_URL + "?action=ownerFullStats");
-                const d = await res.json();
+        async function loadSettings() {
+            const res = await fetch(SCRIPT_URL + "?action=settings");
+            storeSettings = await res.json();
+            document.getElementById('receipt-print-area').style.width = (storeSettings.Lebar_Kertas || 58) + "mm";
+        }
 
-                document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
-                document.getElementById('txt-expense').innerText = "Rp " + d.expense.toLocaleString();
-                document.getElementById('txt-profit').innerText = "Rp " + d.profit.toLocaleString();
+        async function loadStats() {
+            const res = await fetch(SCRIPT_URL + "?action=ownerFullStats");
+            const d = await res.json();
+            document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
+        }
 
-                const expDiv = document.getElementById('expense-list');
-                expDiv.innerHTML = d.expenses.length === 0 ? `<p class="text-slate-600 text-center py-20 italic">Tidak ada pengeluaran</p>` :
-                    d.expenses.map(e => `
-                        <div class="p-5 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center">
-                            <div><p class="text-[9px] font-black text-rose-500 uppercase mb-1">${e.kategori}</p><p class="font-bold text-sm uppercase italic text-slate-300">${e.info}</p></div>
-                            <span class="font-black text-lg italic tracking-tighter">- ${e.jumlah.toLocaleString()}</span>
-                        </div>
-                    `).join('');
+        async function loadHistory() {
+            const date = document.getElementById('filter-date').value;
+            document.getElementById('date-label').innerText = new Date(date).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+            
+            const list = document.getElementById('history-list');
+            const empty = document.getElementById('empty-state');
+            
+            list.innerHTML = `<tr><td colspan="4" class="px-10 py-20 text-center animate-pulse opacity-30 tracking-widest uppercase text-xs">Fetching Data...</td></tr>`;
 
-                const stockDiv = document.getElementById('low-stock-list');
-                stockDiv.innerHTML = d.lowStock.length === 0 ? `<p class="text-slate-600 text-center py-20 italic">Semua stok aman</p>` :
-                    d.lowStock.map(p => `
-                        <div class="p-5 bg-rose-500/10 rounded-2xl border border-rose-500/20 flex justify-between items-center">
-                            <span class="font-black uppercase italic text-xs text-rose-500">${p.nama}</span>
-                            <span class="text-[10px] font-bold uppercase text-white">Sisa: ${p.stok}</span>
-                        </div>
-                    `).join('');
-            } catch (err) { console.error(err); }
+            const res = await fetch(SCRIPT_URL + "?action=getHistoryByDate&date=" + date);
+            const data = await res.json();
+            
+            if(data.length === 0) {
+                list.innerHTML = "";
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            list.innerHTML = data.map(t => `
+                <tr onclick="reprint('${t.inv}')" class="hover:bg-white/5 cursor-pointer transition-all group">
+                    <td class="px-10 py-8 text-rose-500 font-black italic tracking-tighter text-lg">${t.jam}</td>
+                    <td class="px-10 py-8 text-slate-300 uppercase italic tracking-tight">${t.inv}</td>
+                    <td class="px-10 py-8">
+                        <span class="px-3 py-1 bg-white/5 rounded-lg text-[10px] text-slate-500 uppercase tracking-widest border border-white/5 group-hover:border-rose-500/30 transition-all">${t.method}</span>
+                    </td>
+                    <td class="px-10 py-8 text-right text-xl font-black italic tracking-tighter">Rp ${t.total.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function reprint(inv) {
+            const res = await fetch(SCRIPT_URL + "?action=getTransaction&inv=" + inv);
+            const d = await res.json();
+            
+            if(d.status === "success") {
+                document.getElementById('modal-receipt').classList.remove('hidden');
+                document.getElementById('r-store-name').innerText = storeSettings.Nama_Toko;
+                document.getElementById('r-address').innerText = storeSettings.Alamat_Toko;
+                document.getElementById('r-footer').innerText = storeSettings.Footer_Struk;
+                document.getElementById('r-inv').innerText = d.invoice;
+                document.getElementById('r-cashier').innerText = d.cashier;
+                document.getElementById('r-method').innerText = d.method;
+                document.getElementById('r-total').innerText = "Rp " + d.total.toLocaleString();
+                document.getElementById('r-items').innerHTML = d.items.map(i => `
+                    <div class="flex justify-between">
+                        <span>${i.nama} x${i.qty}</span>
+                        <span>${i.sub.toLocaleString()}</span>
+                    </div>`).join('');
+                setTimeout(() => { window.print(); }, 800);
+            }
         }
 
         function logout() { localStorage.clear(); window.location.href = "index.html"; }
