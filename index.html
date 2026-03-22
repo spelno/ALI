@@ -17,12 +17,17 @@
   <button onclick="login()" class="w-full bg-blue-500 text-white p-3 rounded-lg">
     Masuk
   </button>
+
+  <p id="status" class="text-sm mt-3 text-center text-red-500"></p>
 </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxTzI2e5nv9P8q9FVcvj2q4AoxSKBzqVLz32AaEL4pWaBLd_qr1Ol3RWD_8VYrsuOsfVA/exec";
 
 async function login(){
+  const statusEl = document.getElementById("status");
+  statusEl.innerText = "Loading...";
+
   try{
     let res = await fetch(API_URL,{
       method:"POST",
@@ -36,7 +41,12 @@ async function login(){
       })
     });
 
-    let data = await res.json();
+    console.log("Response:", res);
+
+    let text = await res.text();
+    console.log("Raw:", text);
+
+    let data = JSON.parse(text);
 
     if(data.status==="success"){
       sessionStorage.setItem("user", JSON.stringify(data.user));
@@ -46,12 +56,12 @@ async function login(){
       if(data.user.role==="owner") location="owner.html";
 
     }else{
-      alert(data.message || "Login gagal");
+      statusEl.innerText = data.message || "Login gagal";
     }
 
   }catch(err){
-    alert("Tidak bisa konek ke server");
-    console.error(err);
+    statusEl.innerText = "Tidak bisa konek ke server";
+    console.error("ERROR:", err);
   }
 }
 </script>
