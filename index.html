@@ -1,103 +1,51 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ALI POS Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; }
-        .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .glass-login { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    </style>
+<meta charset="UTF-8">
+<title>ALI POS Login</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
 
-    <div class="w-full max-w-md">
-        <div class="text-center mb-10">
-            <div class="inline-flex w-20 h-20 ali-gradient rounded-[2.5rem] items-center justify-center text-white text-4xl font-black italic shadow-2xl mb-6">A</div>
-            <h1 class="text-2xl font-black text-white uppercase italic tracking-tighter">Ali <span class="text-rose-500">Retail</span></h1>
-            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Point of Sale System v4.0</p>
-        </div>
+<body class="bg-gradient-to-br from-blue-50 to-white flex items-center justify-center h-screen">
 
-        <div class="glass-login p-10 rounded-[3.5rem] shadow-2xl">
-            <div class="space-y-6">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Identitas Pengguna</label>
-                    <input type="text" id="username" placeholder="Username" 
-                        class="w-full p-5 bg-slate-800/50 border border-white/5 rounded-3xl text-white font-bold outline-none focus:border-rose-500 transition-all">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Kata Sandi</label>
-                    <input type="password" id="password" placeholder="••••••••" 
-                        class="w-full p-5 bg-slate-800/50 border border-white/5 rounded-3xl text-white font-bold outline-none focus:border-rose-500 transition-all">
-                </div>
-                
-                <button onclick="handleLogin()" id="btn-login" 
-                    class="w-full ali-gradient p-6 rounded-3xl text-white font-black uppercase italic tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                    Masuk Sistem
-                </button>
-            </div>
-        </div>
+<div class="bg-white p-8 rounded-2xl shadow-xl w-80">
+  <h2 class="text-2xl font-bold mb-6 text-center">ALI POS</h2>
 
-        <p class="text-center mt-10 text-[9px] text-slate-600 font-bold uppercase tracking-widest italic">
-            &copy; 2026 Ali Retail Bitung
-        </p>
-    </div>
+  <input id="user" class="w-full mb-3 p-3 border rounded-lg" placeholder="Username">
+  <input id="pass" type="password" class="w-full mb-4 p-3 border rounded-lg" placeholder="Password">
 
-    <script>
-        // GANTI DENGAN URL WEB APP ANDA
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXGshDNy244dPlfL_wm8wHCPyg4vk9Schw9gzFlwK8CEApsOpXc7kxfA5bK5P-0A5N/exec";
+  <button onclick="login()" class="w-full bg-blue-500 text-white p-3 rounded-lg">
+    Masuk
+  </button>
+</div>
 
-        async function handleLogin() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const btn = document.getElementById('btn-login');
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwIv5TIc1e4yWI12pM_VN6bHHlsFHnKUyCEgFCyRMN3RfhQYvC-TkvrF6mkoQaOpjWuAg/exec";
 
-            if (!user || !pass) return alert("Mohon lengkapi data!");
+async function login(){
+  let res = await fetch(API_URL,{
+    method:"POST",
+    body: JSON.stringify({
+      action:"login",
+      username: user.value,
+      password: pass.value
+    })
+  });
 
-            btn.innerText = "MENGOTENTIKASI...";
-            btn.disabled = true;
+  let data = await res.json();
 
-            try {
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "login", username: user, password: pass })
-                });
-                const data = await res.json();
+  if(data.status==="success"){
+    sessionStorage.setItem("user", JSON.stringify(data.user));
 
-                if (data.status === "success") {
-                    // Simpan data user ke memory browser
-                    localStorage.setItem('ali_session', JSON.stringify(data.user));
+    if(data.user.role==="kasir") location="kasir.html";
+    if(data.user.role==="admin") location="admin.html";
+    if(data.user.role==="owner") location="owner.html";
 
-                    // LOGIKA PENGALIHAN BERDASARKAN ROLE
-                    const role = data.user.role.toLowerCase().trim();
-                    
-                    if (role === "owner") {
-                        window.location.href = "owner.html"; // Redirect khusus Owner
-                    } else if (role === "kasir" || role === "admin") {
-                        window.location.href = "kasir.html"; // Redirect khusus Kasir/Staff
-                    } else {
-                        alert("Role tidak dikenali: " + role);
-                        location.reload();
-                    }
-                } else {
-                    alert("Gagal: " + data.message);
-                    btn.innerText = "Masuk Sistem";
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                alert("Server tidak merespon. Cek koneksi atau URL API!");
-                btn.innerText = "Masuk Sistem";
-                btn.disabled = false;
-            }
-        }
+  }else{
+    alert("Login gagal");
+  }
+}
+</script>
 
-        // Jalankan login saat tekan Enter
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLogin();
-        });
-    </script>
 </body>
 </html>
