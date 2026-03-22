@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Kasir Premium</title>
+<title>ALI POS Kasir</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -26,8 +26,6 @@
   opacity:0; transition:0.3s;
 }
 .toast.show{opacity:1;}
-
-#print-area{ display:none; }
 </style>
 </head>
 
@@ -44,7 +42,7 @@ if(!user || user.role !== "kasir"){
 
 <div id="toast" class="toast"></div>
 
-<!-- CART -->
+<!-- LEFT CART -->
 <div class="w-1/2 bg-white p-6 flex flex-col">
 
   <div class="flex justify-between mb-4">
@@ -67,7 +65,7 @@ if(!user || user.role !== "kasir"){
 
 </div>
 
-<!-- KATALOG -->
+<!-- RIGHT PANEL -->
 <div id="panel" class="slide-panel p-5">
   <div class="flex justify-between mb-3">
     <h2 class="text-xl font-bold">Katalog</h2>
@@ -84,15 +82,14 @@ if(!user || user.role !== "kasir"){
   </div>
 </div>
 
-<!-- PRINT AREA -->
-<div id="print-area"></div>
-
 <script>
 let cartData=[];
 let produkList=[];
+let offlineQueue = JSON.parse(localStorage.getItem("offlineQueue") || "[]");
+
 const beep = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3");
 
-/* TOAST */
+/* ================= TOAST ================= */
 function showToast(msg,color="#333"){
   const t=document.getElementById("toast");
   t.innerText=msg;
@@ -101,11 +98,11 @@ function showToast(msg,color="#333"){
   setTimeout(()=>t.classList.remove("show"),2000);
 }
 
-/* PANEL */
+/* ================= PANEL ================= */
 function openPanel(){ panel.classList.add("open"); }
 function closePanel(){ panel.classList.remove("open"); }
 
-/* LOAD PRODUK */
+/* ================= LOAD PRODUK ================= */
 async function loadProduk(){
   let res = await fetch(API_URL+"?action=products");
   produkList = await res.json();
@@ -118,19 +115,20 @@ async function loadProduk(){
   `).join("");
 }
 
-/* ADD */
+/* ================= ADD ================= */
 function add(barcode){
   let p = produkList.find(x=>x.Barcode==barcode);
-  if(!p) return;
+  if(!p) return showToast("Produk tidak ditemukan","red");
 
   cartData.push({...p, Qty:1});
   beep.play();
   renderCart();
 }
 
-/* CART */
+/* ================= CART ================= */
 function renderCart(){
   let total=0;
+
   cart.innerHTML = cartData.map(c=>{
     total+=c.Qty*c.Harga_Jual;
     return `<div class="flex justify-between border-b py-2">
@@ -138,30 +136,76 @@ function renderCart(){
       <span>${c.Qty}</span>
     </div>`;
   }).join("");
+
   totalEl.innerText = total;
 }
 
-/* BAYAR */
+/* ================= BAYAR ================= */
 async function bayar(){
-  let res = await fetch(API_URL,{
-    method:"POST",
-    body: JSON.stringify({
-      action:"saveTransaction",
-      cart:cartData,
-      cashierName:user.nama,
-      role:user.role,
-      method:"Cash"
-    })
-  });
 
-  let d = await res.json();
-  window.lastInvoice = d.invoice;
+  let trxData = {
+    action:"saveTransaction",
+    cart:cartData,
+    cashierName:user.nama,
+    role:user.role,
+    method:"Cash"
+  };
+
+  if(navigator.onLine){
+    try{
+      let res = await fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(trxData)
+      });
+
+      let d = await res.json();
+      window.lastInvoice = d.invoice;
+
+      showToast("Transaksi sukses","green");
+
+    }catch(e){
+      saveOffline(trxData);
+    }
+  }else{
+    saveOffline(trxData);
+  }
 
   beep.play();
-  showToast("Transaksi sukses","green");
+  cartData=[];
+  renderCart();
 }
 
-/* PRINT */
+/* ================= OFFLINE ================= */
+function saveOffline(data){
+  offlineQueue.push(data);
+  localStorage.setItem("offlineQueue", JSON.stringify(offlineQueue));
+  showToast("Disimpan offline","orange");
+}
+
+async function syncOffline(){
+  if(!offlineQueue.length) return;
+
+  let success=[];
+
+  for(let trx of offlineQueue){
+    try{
+      await fetch(API_URL,{
+        method:"POST",
+        body: JSON.stringify(trx)
+      });
+      success.push(trx);
+    }catch(e){
+      break;
+    }
+  }
+
+  offlineQueue = offlineQueue.filter(x=>!success.includes(x));
+  localStorage.setItem("offlineQueue", JSON.stringify(offlineQueue));
+
+  showToast("Sync selesai","green");
+}
+
+/* ================= PRINT ================= */
 function printStruk(){
   let html = `
   <div style="width:250px;font-family:monospace">
@@ -176,14 +220,12 @@ function printStruk(){
     <br>Invoice: ${window.lastInvoice || "-"}
   </div>`;
 
-  document.getElementById("print-area").innerHTML = html;
-
   let w = window.open();
   w.document.write(html);
   w.print();
 }
 
-/* SCANNER */
+/* ================= SCANNER ================= */
 let scanner;
 
 function startScan(){
@@ -191,11 +233,11 @@ function startScan(){
 
   scanner = new Html5Qrcode("reader");
   scanner.start(
-    { facingMode: "environment" },
-    { fps: 10 },
-    (decoded)=>{
+    { facingMode:"environment" },
+    { fps:10 },
+    (code)=>{
       stopScan();
-      add(decoded);
+      add(code);
       showToast("Barcode terbaca","green");
     }
   );
@@ -206,7 +248,17 @@ function stopScan(){
   document.getElementById("scanner").classList.add("hidden");
 }
 
-/* LOGOUT */
+/* ================= NETWORK ================= */
+window.addEventListener("offline", ()=>{
+  showToast("Mode Offline","orange");
+});
+
+window.addEventListener("online", ()=>{
+  showToast("Online kembali","green");
+  syncOffline();
+});
+
+/* ================= LOGOUT ================= */
 function logout(){
   sessionStorage.clear();
   location="index.html";
@@ -215,6 +267,7 @@ function logout(){
 const totalEl = document.getElementById("total");
 
 loadProduk();
+if(navigator.onLine) syncOffline();
 </script>
 
 </body>
