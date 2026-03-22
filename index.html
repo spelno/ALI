@@ -3,169 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALI POS - Authentication</title>
+    <title>Login - ALI POS Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .loader { border-top-color: #e11d48; animation: spinner 0.6s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .glass-login { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6 overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-6">
 
-    <div id="notif" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] hidden">
-        <div class="bg-rose-600 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-3">
-            <span id="notif-msg"></span>
-            <button onclick="hideNotif()" class="opacity-50 hover:opacity-100">✕</button>
-        </div>
-    </div>
-
-    <div class="glass-card w-full max-w-sm p-10 rounded-[3rem] shadow-2xl border border-white/20 relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-32 h-32 ali-gradient blur-3xl opacity-20"></div>
-
-        <div class="text-center mb-10 relative">
-            <div class="w-20 h-20 ali-gradient rounded-[2.5rem] mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black italic shadow-2xl shadow-rose-500/40">A</div>
-            <h1 class="text-2xl font-black tracking-tighter uppercase italic text-slate-800">
-                ALI <span class="text-rose-500">POS</span>
-            </h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Management System v2.0</p>
+    <div class="w-full max-w-md">
+        <div class="text-center mb-10">
+            <div class="inline-flex w-20 h-20 ali-gradient rounded-[2.5rem] items-center justify-center text-white text-4xl font-black italic shadow-2xl mb-6">A</div>
+            <h1 class="text-2xl font-black text-white uppercase italic tracking-tighter">Ali <span class="text-rose-500">Retail</span></h1>
+            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Point of Sale System v4.0</p>
         </div>
 
-        <div class="space-y-4 relative">
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Username</label>
-                <input type="text" id="username" placeholder="Masukkan ID" autocomplete="off"
-                    class="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 font-bold outline-none focus:border-rose-500 transition-all text-slate-700">
+        <div class="glass-login p-10 rounded-[3.5rem] shadow-2xl">
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Identitas Pengguna</label>
+                    <input type="text" id="username" placeholder="Username" 
+                        class="w-full p-5 bg-slate-800/50 border border-white/5 rounded-3xl text-white font-bold outline-none focus:border-rose-500 transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 mb-2 block">Kata Sandi</label>
+                    <input type="password" id="password" placeholder="••••••••" 
+                        class="w-full p-5 bg-slate-800/50 border border-white/5 rounded-3xl text-white font-bold outline-none focus:border-rose-500 transition-all">
+                </div>
+                
+                <button onclick="handleLogin()" id="btn-login" 
+                    class="w-full ali-gradient p-6 rounded-3xl text-white font-black uppercase italic tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                    Masuk Sistem
+                </button>
             </div>
-
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase ml-4 mb-1 block">Password</label>
-                <input type="password" id="password" placeholder="••••••••" 
-                    class="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 font-bold outline-none focus:border-rose-500 transition-all text-slate-700">
-            </div>
-
-            <button onclick="prosesLogin()" id="btn-login" 
-                class="w-full ali-gradient text-white font-black py-5 rounded-2xl shadow-xl shadow-rose-600/30 active:scale-95 transition-all mt-6 uppercase italic tracking-widest text-sm flex justify-center items-center">
-                <span id="btn-text">Masuk Dashboard</span>
-                <div id="btn-loader" class="loader hidden w-5 h-5 border-2 border-white border-solid rounded-full"></div>
-            </button>
         </div>
 
-        <p class="text-center mt-10 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">
-            &copy; 2026 Integrated POS System
+        <p class="text-center mt-10 text-[9px] text-slate-600 font-bold uppercase tracking-widest italic">
+            &copy; 2026 Ali Retail Bitung
         </p>
     </div>
 
     <script>
-        /** * 1. KONFIGURASI API (WAJIB ISI MANUAL)
-         * Karena di GitHub Pages, script tidak bisa mengambil URL otomatis dari Google.
-         */
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAWigC7Nut3LCbGgOFMzKAZuvQPgRs3bNEw9IGGVc2KHy5UVsK4Wttq5CQnHXyiax3BA/exec";
+        // GANTI DENGAN URL WEB APP ANDA
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXGshDNy244dPlfL_wm8wHCPyg4vk9Schw9gzFlwK8CEApsOpXc7kxfA5bK5P-0A5N/exec";
 
-        /**
-         * 2. MODUL AUTO-REDIRECT (SESSION CHECK)
-         * Mencegah user login ulang jika tab baru dibuka atau halaman di-refresh.
-         */
-        window.onload = () => {
-            if (SCRIPT_URL === "MASUKKAN_URL_DEPLOY_GAS_ANDA_DI_SINI") {
-                showNotif("Konfigurasi API Belum Diisi!");
-                return;
-            }
-
-            const session = JSON.parse(localStorage.getItem('ali_session'));
-            if (session && session.role) {
-                console.log("Session Aktif. Mengalihkan ke " + session.role);
-                window.location.href = session.role + ".html";
-            }
-        };
-
-        /**
-         * 3. MODUL LOGIN (POST REQUEST)
-         */
-        async function prosesLogin() {
+        async function handleLogin() {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             const btn = document.getElementById('btn-login');
-            const btnText = document.getElementById('btn-text');
-            const btnLoader = document.getElementById('btn-loader');
 
-            if (!user || !pass) {
-                showNotif("Harap isi semua kolom!");
-                return;
-            }
+            if (!user || !pass) return alert("Mohon lengkapi data!");
 
-            // UI Loading State
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
+            btn.innerText = "MENGOTENTIKASI...";
             btn.disabled = true;
 
             try {
-                // Fetch menggunakan POST ke Google Apps Script
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Penting untuk menghindari CORS issue di beberapa browser
-                    body: JSON.stringify({
-                        action: "login",
-                        username: user,
-                        password: pass
-                    })
-                });
-
-                /** * CATATAN: Karena 'no-cors' tidak mengembalikan body response, 
-                 * kita harus menggunakan fetch standar jika GAS sudah diatur untuk mengizinkan CORS.
-                 * Jika menggunakan Fetch standar:
-                 */
-                const standardResponse = await fetch(SCRIPT_URL, {
+                const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: "login", username: user, password: pass })
                 });
+                const data = await res.json();
 
-                const result = await standardResponse.json();
+                if (data.status === "success") {
+                    // Simpan data user ke memory browser
+                    localStorage.setItem('ali_session', JSON.stringify(data.user));
 
-                if (result.status === "success") {
-                    // Simpan Session ke Browser
-                    localStorage.setItem('ali_session', JSON.stringify(result.user));
+                    // LOGIKA PENGALIHAN BERDASARKAN ROLE
+                    const role = data.user.role.toLowerCase().trim();
                     
-                    // Alihkan berdasarkan Role (admin.html, kasir.html, atau owner.html)
-                    window.location.href = result.user.role + ".html";
+                    if (role === "owner") {
+                        window.location.href = "owner.html"; // Redirect khusus Owner
+                    } else if (role === "kasir" || role === "admin") {
+                        window.location.href = "kasir.html"; // Redirect khusus Kasir/Staff
+                    } else {
+                        alert("Role tidak dikenali: " + role);
+                        location.reload();
+                    }
                 } else {
-                    showNotif(result.message);
-                    resetButton();
+                    alert("Gagal: " + data.message);
+                    btn.innerText = "Masuk Sistem";
+                    btn.disabled = false;
                 }
-
             } catch (err) {
-                console.error(err);
-                showNotif("Gagal terhubung ke Server. Periksa URL API!");
-                resetButton();
+                alert("Server tidak merespon. Cek koneksi atau URL API!");
+                btn.innerText = "Masuk Sistem";
+                btn.disabled = false;
             }
         }
 
-        /**
-         * 4. MODUL HELPER (UI)
-         */
-        function showNotif(msg) {
-            const n = document.getElementById('notif');
-            document.getElementById('notif-msg').innerText = msg;
-            n.classList.remove('hidden');
-            setTimeout(() => hideNotif(), 5000);
-        }
-
-        function hideNotif() {
-            document.getElementById('notif').classList.add('hidden');
-        }
-
-        function resetButton() {
-            const btn = document.getElementById('btn-login');
-            document.getElementById('btn-text').classList.remove('hidden');
-            document.getElementById('btn-loader').classList.add('hidden');
-            btn.disabled = false;
-        }
-
-        // Shortcut Enter
-        document.onkeydown = (e) => { if(e.key === "Enter") prosesLogin(); };
+        // Jalankan login saat tekan Enter
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
     </script>
 </body>
 </html>
