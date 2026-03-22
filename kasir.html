@@ -3,123 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Kasir - ALI POS</title>
+    <title>ALI POS - Premium Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; height: 100vh; overflow: hidden; }
         .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        #catalog-panel { transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 0; opacity: 0; }
-        #catalog-panel.open { width: 450px; opacity: 1; border-left: 1px solid #e2e8f0; }
+        .glass-sidebar { background: white; border-right: 1px solid rgba(0,0,0,0.05); }
+        
+        /* Area scroll khusus untuk list item agar footer tidak terdorong ke bawah */
+        .scroll-area { height: calc(100vh - 450px); overflow-y: auto; scrollbar-width: none; }
+        .scroll-area::-webkit-scrollbar { display: none; }
+
+        #catalog-panel { transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); z-index: 200; }
+        #catalog-panel.open { transform: translateX(0); }
         
         @media print {
             body * { visibility: hidden; }
             #receipt-print-area, #receipt-print-area * { visibility: visible; }
-            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100% !important; margin: 0; padding: 10px; }
+            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100% !important; background: white; }
         }
     </style>
 </head>
-<body class="h-screen flex">
+<body class="flex">
 
-    <aside class="w-24 bg-white border-r flex flex-col items-center py-10 gap-12 z-[100] shadow-sm">
-        <div class="w-14 h-14 ali-gradient rounded-[2rem] flex items-center justify-center text-white font-black italic shadow-xl text-xl">A</div>
-        <button onclick="toggleCatalog()" class="p-5 rounded-[1.5rem] text-slate-400 hover:bg-slate-50 hover:text-rose-600 transition-all group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <aside class="w-20 glass-sidebar flex flex-col items-center py-10 gap-10">
+        <div class="w-12 h-12 ali-gradient rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg text-xl">A</div>
+        <button onclick="toggleCatalog()" class="p-4 rounded-2xl text-slate-300 hover:bg-rose-50 hover:text-rose-600 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
         </button>
-        <button onclick="logout()" class="mt-auto p-5 text-rose-500 font-black text-[10px] uppercase italic tracking-widest hover:bg-rose-50 rounded-2xl">Keluar</button>
+        <button onclick="logout()" class="mt-auto p-4 text-slate-300 hover:text-rose-600 font-black text-[9px] uppercase tracking-widest">Exit</button>
     </aside>
 
-    <main class="flex-1 flex flex-col p-10 bg-slate-50/50">
-        <header class="flex justify-between items-end mb-10">
+    <main class="flex-1 flex flex-col p-8 lg:p-12 overflow-hidden">
+        
+        <header class="flex justify-between items-center mb-10">
             <div>
-                <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em] mb-1 italic">Point of Sale</p>
-                <h2 class="text-4xl font-black text-slate-800 uppercase italic tracking-tighter">Shopping <span class="text-rose-600">Cart</span></h2>
+                <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] italic mb-1">Ali Retail Terminal</p>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tighter italic uppercase">Current <span class="text-rose-600">Order</span></h2>
             </div>
-            <div id="cashier-display" class="px-6 py-3 rounded-2xl bg-white shadow-sm text-[10px] font-black uppercase border border-slate-100 italic text-rose-600 tracking-widest">
-                Kasir: Loading...
+            <div id="cashier-display" class="px-6 py-3 rounded-2xl bg-white shadow-sm border border-slate-100 text-[9px] font-black uppercase italic text-slate-400 tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Staff: Loading...
             </div>
         </header>
 
-        <div class="relative mb-10 group">
-            <input type="text" id="barcode-scan" onkeydown="handleBarcode(event)" placeholder="Scan Barcode atau Cari Produk..." 
-                class="w-full p-8 bg-white border-2 border-slate-100 rounded-[2.5rem] font-bold text-2xl outline-none focus:border-rose-500 shadow-sm transition-all pr-20">
-            <div class="absolute right-8 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-rose-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
+        <div class="relative mb-8">
+            <input type="text" id="barcode-scan" onkeydown="handleBarcode(event)" placeholder="Scan Barcode / Ketik Nama Produk..." 
+                class="w-full p-6 bg-white border-2 border-transparent rounded-[2rem] font-bold text-xl outline-none focus:border-rose-500 shadow-xl shadow-slate-200/50 transition-all">
+            <div class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
             </div>
         </div>
 
-        <div id="cart-list" class="flex-1 overflow-y-auto space-y-4 pr-4 custom-scrollbar">
+        <div id="cart-list" class="scroll-area space-y-4">
             </div>
 
-        <div class="mt-10 p-12 bg-white rounded-[4rem] shadow-2xl flex justify-between items-center border border-slate-100 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-2 h-full ali-gradient"></div>
-            <div>
-                <p class="text-[11px] font-black text-slate-400 uppercase mb-2 italic tracking-widest">Total Bayar</p>
-                <p id="total-amount" class="text-6xl font-black italic text-slate-900 tracking-tighter">Rp 0</p>
+        <div class="mt-auto pt-8">
+            <div class="bg-slate-900 p-10 rounded-[3.5rem] shadow-2xl flex justify-between items-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-rose-600 opacity-20 blur-[60px] rounded-full"></div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1 tracking-widest italic">Total Pembayaran</p>
+                    <p id="total-amount" class="text-5xl font-black italic text-white tracking-tighter">Rp 0</p>
+                </div>
+                <button onclick="openPaymentModal()" class="ali-gradient text-white px-12 py-6 rounded-3xl font-black uppercase italic shadow-2xl text-lg hover:scale-105 active:scale-95 transition-all">
+                    Pay Now (F9)
+                </button>
             </div>
-            <button onclick="openPaymentModal()" class="ali-gradient text-white px-20 py-8 rounded-[2.5rem] font-black uppercase italic shadow-2xl text-xl hover:scale-105 active:scale-95 transition-all">Bayar Sekarang (F9)</button>
         </div>
     </main>
 
-    <section id="catalog-panel" class="bg-white flex flex-col h-screen overflow-hidden shadow-2xl">
+    <section id="catalog-panel" class="fixed right-0 top-0 w-full max-w-md h-screen bg-white shadow-2xl flex flex-col">
         <div class="p-10 border-b flex justify-between items-center">
-            <h3 class="font-black uppercase italic text-slate-800 tracking-widest">Katalog Produk</h3>
-            <button onclick="toggleCatalog()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100">✕</button>
+            <h3 class="font-black uppercase italic text-slate-900 tracking-widest">Catalog.</h3>
+            <button onclick="toggleCatalog()" class="text-slate-400 hover:text-rose-600 text-xl font-bold">✕</button>
         </div>
-        <div id="catalog-grid" class="flex-1 overflow-y-auto p-8 space-y-4 custom-scrollbar">
+        <div id="catalog-grid" class="flex-1 overflow-y-auto p-10 space-y-4">
             </div>
     </section>
 
-    <div id="modal-pay" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[200] flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-lg p-12 rounded-[4.5rem] shadow-2xl space-y-8">
+    <div id="modal-pay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[300] flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-lg p-12 rounded-[4rem] shadow-2xl space-y-8">
             <div class="text-center">
-                <p class="text-[10px] font-black text-slate-400 uppercase italic mb-2">Total Tagihan</p>
-                <h2 id="pay-total-display" class="text-5xl font-black text-slate-800 italic tracking-tighter">Rp 0</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase italic mb-2">Grand Total</p>
+                <h2 id="pay-total-display" class="text-5xl font-black text-slate-900 italic tracking-tighter">Rp 0</h2>
             </div>
-            
             <div class="grid grid-cols-2 gap-4">
                 <button onclick="setMethod('Tunai')" id="btn-cash" class="p-5 border-2 rounded-3xl font-black text-xs uppercase italic transition-all border-rose-600 text-rose-600 bg-rose-50">💵 Tunai</button>
                 <button onclick="setMethod('QRIS')" id="btn-qris" class="p-5 border-2 rounded-3xl font-black text-xs uppercase italic transition-all border-slate-100 text-slate-400">📱 QRIS</button>
             </div>
-
             <div id="cash-section" class="space-y-6">
-                <input type="number" id="input-cash" oninput="calcChange()" placeholder="Masukkan Nominal Uang" 
-                    class="w-full p-8 bg-slate-50 border-none rounded-[2.5rem] text-4xl font-black text-emerald-600 text-center outline-none focus:ring-4 focus:ring-emerald-100 transition-all">
-                <div class="bg-slate-50 p-8 rounded-[2.5rem] text-center border border-dashed border-slate-200">
-                    <p class="text-[10px] font-black text-slate-400 uppercase italic mb-1">Kembalian</p>
-                    <h3 id="txt-change" class="text-4xl font-black text-rose-600 italic">Rp 0</h3>
+                <input type="number" id="input-cash" oninput="calcChange()" placeholder="Enter Amount" 
+                    class="w-full p-6 bg-slate-50 rounded-3xl text-4xl font-black text-emerald-600 text-center outline-none border-2 border-transparent focus:border-emerald-100">
+                <div class="bg-slate-50 p-6 rounded-3xl text-center border-2 border-dashed border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase italic">Kembalian</p>
+                    <h3 id="txt-change" class="text-3xl font-black text-rose-600 italic">Rp 0</h3>
                 </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-6 pt-4">
-                <button onclick="closePaymentModal()" class="py-6 text-slate-400 font-black uppercase text-xs hover:text-slate-600 transition-all">Batal</button>
-                <button onclick="submitTransaction()" id="btn-finish" class="ali-gradient py-6 text-white rounded-[2rem] font-black uppercase italic shadow-lg text-sm tracking-widest">Selesaikan</button>
+            <div class="flex gap-4">
+                <button onclick="closePaymentModal()" class="flex-1 py-4 text-slate-400 font-black uppercase text-[10px]">Batal</button>
+                <button onclick="submitTransaction()" id="btn-finish" class="flex-[2] ali-gradient py-6 text-white rounded-[2rem] font-black uppercase italic shadow-xl text-xs tracking-widest">Finish Order</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-receipt" onclick="location.reload()" class="hidden fixed inset-0 bg-slate-950/95 z-[300] flex items-center justify-center p-6 cursor-pointer">
-        <div id="receipt-print-area" class="bg-white p-10 font-mono text-[11px] text-slate-800 shadow-2xl rounded-sm">
+    <div id="modal-receipt" onclick="location.reload()" class="hidden fixed inset-0 bg-slate-950/95 z-[400] flex items-center justify-center p-6 cursor-pointer">
+        <div id="receipt-print-area" class="bg-white p-10 font-mono text-[11px] text-slate-800 shadow-2xl">
             <div class="text-center mb-6">
-                <h2 class="font-bold text-lg uppercase" id="r-store-name">...</h2>
-                <p id="r-address" class="leading-tight text-[10px]"></p>
-                <div class="border-b border-dashed my-5 border-slate-300"></div>
+                <h2 class="font-black text-lg uppercase tracking-tight" id="r-store-name">...</h2>
+                <p id="r-address" class="text-[9px] opacity-60"></p>
+                <div class="border-b-2 border-dashed my-4 border-slate-200"></div>
             </div>
-            <div class="flex justify-between mb-1"><span>Invoice:</span><span id="r-inv" class="font-bold"></span></div>
-            <div class="flex justify-between mb-5"><span>Kasir:</span><span id="r-cashier"></span></div>
-            <div id="r-items" class="space-y-2 mb-5 border-t border-dashed pt-5 border-slate-300"></div>
-            <div class="border-t border-dashed mb-6 border-slate-300 pt-5">
-                <div class="flex justify-between font-bold text-sm"><span>TOTAL:</span><span id="r-total"></span></div>
-                <div class="flex justify-between text-[10px]"><span>METODE:</span><span id="r-method"></span></div>
+            <div id="r-items" class="space-y-2 mb-6 border-b border-dashed pb-6 border-slate-200"></div>
+            <div class="mb-6">
+                <div class="flex justify-between font-black text-sm"><span>TOTAL:</span><span id="r-total"></span></div>
+                <div class="flex justify-between text-[9px] opacity-60"><span>METHOD:</span><span id="r-method"></span></div>
             </div>
-            <div class="text-center italic mt-8 border-t border-dashed pt-5 border-slate-300 text-[9px] leading-relaxed" id="r-footer"></div>
-            <p class="text-[8px] text-center mt-6 opacity-50 uppercase">Terima Kasih Atas Kunjungan Anda</p>
+            <p id="r-footer" class="text-center italic text-[9px] opacity-50"></p>
         </div>
     </div>
 
@@ -129,10 +131,8 @@
         let session = JSON.parse(localStorage.getItem('ali_session'));
 
         window.onload = async () => {
-            // Proteksi Login
             if(!session) { window.location.href = "index.html"; return; }
-            document.getElementById('cashier-display').innerText = "Kasir: " + session.nama;
-            
+            document.getElementById('cashier-display').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${session.nama}`;
             await Promise.all([loadSettings(), loadProducts()]);
             document.getElementById('barcode-scan').focus();
         };
@@ -141,9 +141,8 @@
             try {
                 const res = await fetch(SCRIPT_URL + "?action=settings");
                 storeSettings = await res.json();
-                // Set lebar kertas struk dari sheet (misal 58mm)
                 document.getElementById('receipt-print-area').style.width = (storeSettings.Lebar_Kertas || 58) + "mm";
-            } catch(e) { console.error("Settings Error"); }
+            } catch(e) {}
         }
 
         async function loadProducts() {
@@ -151,7 +150,7 @@
                 const res = await fetch(SCRIPT_URL + "?action=products");
                 products = await res.json();
                 renderCatalog(products);
-            } catch(e) { alert("Gagal mengambil data produk"); }
+            } catch(e) {}
         }
 
         function handleBarcode(e) {
@@ -173,17 +172,17 @@
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
             document.getElementById('total-amount').innerText = "Rp " + total.toLocaleString();
             document.getElementById('cart-list').innerHTML = cart.map((item, idx) => `
-                <div class="flex justify-between items-center bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:border-rose-200 transition-all">
-                    <div class="flex gap-6 items-center">
-                        <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center font-black text-lg">${item.Qty}</div>
+                <div class="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-12 h-12 ali-gradient text-white rounded-2xl flex items-center justify-center font-black text-lg italic">${item.Qty}</div>
                         <div>
-                            <p class="font-black uppercase italic text-sm tracking-tight">${item.Nama_Barang}</p>
-                            <p class="text-[10px] font-bold text-slate-400 mt-1">@ Rp ${item.Harga_Jual.toLocaleString()}</p>
+                            <p class="font-black uppercase italic text-xs tracking-tight text-slate-800">${item.Nama_Barang}</p>
+                            <p class="text-[9px] font-bold text-slate-300">Rp ${item.Harga_Jual.toLocaleString()}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-8">
-                        <span class="font-black italic text-xl tracking-tighter">Rp ${(item.Harga_Jual * item.Qty).toLocaleString()}</span>
-                        <button onclick="cart.splice(${idx},1);renderCart()" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all">✕</button>
+                    <div class="flex items-center gap-6">
+                        <span class="font-black italic text-lg text-slate-900">Rp ${(item.Harga_Jual * item.Qty).toLocaleString()}</span>
+                        <button onclick="cart.splice(${idx},1);renderCart()" class="text-slate-200 hover:text-rose-600 transition-all">✕</button>
                     </div>
                 </div>`).join('');
         }
@@ -191,27 +190,21 @@
         function setMethod(m) {
             currentMethod = m;
             document.getElementById('cash-section').classList.toggle('hidden', m === 'QRIS');
-            document.querySelectorAll('#modal-pay button').forEach(b => {
-                b.classList.remove('border-rose-600', 'text-rose-600', 'bg-rose-50');
-                b.classList.add('border-slate-100', 'text-slate-400');
+            const btns = ['btn-cash', 'btn-qris'];
+            btns.forEach(id => {
+                const b = document.getElementById(id);
+                b.className = "p-5 border-2 rounded-3xl font-black text-xs uppercase italic transition-all " + 
+                    (id.includes(m.toLowerCase()) ? "border-rose-600 text-rose-600 bg-rose-50 shadow-md" : "border-slate-100 text-slate-400");
             });
-            const activeBtn = m === 'Tunai' ? 'btn-cash' : 'btn-qris';
-            document.getElementById(activeBtn).classList.remove('border-slate-100', 'text-slate-400');
-            document.getElementById(activeBtn).classList.add('border-rose-600', 'text-rose-600', 'bg-rose-50');
         }
 
         async function submitTransaction() {
             const total = cart.reduce((s, i) => s + (i.Harga_Jual * i.Qty), 0);
             const cash = parseFloat(document.getElementById('input-cash').value) || 0;
-            
-            if (currentMethod === 'Tunai' && cash < total) {
-                alert("Jumlah uang tidak cukup!");
-                return;
-            }
+            if (currentMethod === 'Tunai' && cash < total) return alert("Cash Insufficient!");
 
             const btn = document.getElementById('btn-finish');
-            btn.innerText = "SEDANG MEMPROSES...";
-            btn.disabled = true;
+            btn.innerText = "SAVING..."; btn.disabled = true;
 
             try {
                 const res = await fetch(SCRIPT_URL, {
@@ -219,45 +212,29 @@
                     body: JSON.stringify({ action: "saveTransaction", cart: cart, cashierName: session.nama, method: currentMethod })
                 });
                 const r = await res.json();
-                if(r.status === "success") {
-                    showReceipt(r.invoice, total, cash);
-                }
-            } catch(e) {
-                alert("Gagal menyimpan transaksi!");
-                btn.innerText = "Selesaikan";
-                btn.disabled = false;
-            }
+                if(r.status === "success") showReceipt(r.invoice, total, cash);
+            } catch(e) { alert("Error!"); btn.innerText = "Finish Order"; btn.disabled = false; }
         }
 
         function showReceipt(inv, total, cash) {
             document.getElementById('modal-pay').classList.add('hidden');
             document.getElementById('modal-receipt').classList.remove('hidden');
-            
-            // Isi Data Struk dari Pengaturan
-            document.getElementById('r-store-name').innerText = storeSettings.Nama_Toko || "ALI RETAIL";
-            document.getElementById('r-address').innerText = storeSettings.Alamat_Toko || "";
-            document.getElementById('r-footer').innerText = storeSettings.Footer_Struk || "";
-            
-            document.getElementById('r-inv').innerText = inv;
-            document.getElementById('r-cashier').innerText = session.nama;
-            document.getElementById('r-method').innerText = currentMethod;
+            document.getElementById('r-store-name').innerText = storeSettings.Nama_Toko;
+            document.getElementById('r-address').innerText = storeSettings.Alamat_Toko;
+            document.getElementById('r-footer').innerText = storeSettings.Footer_Struk;
             document.getElementById('r-total').innerText = "Rp " + total.toLocaleString();
-            document.getElementById('r-items').innerHTML = cart.map(i => `
-                <div class="flex justify-between">
-                    <span>${i.Nama_Barang} x${i.Qty}</span>
-                    <span>${(i.Harga_Jual * i.Qty).toLocaleString()}</span>
-                </div>`).join('');
-            
+            document.getElementById('r-method').innerText = currentMethod;
+            document.getElementById('r-items').innerHTML = cart.map(i => `<div class="flex justify-between"><span>${i.Nama_Barang} x${i.Qty}</span><span>${(i.Harga_Jual * i.Qty).toLocaleString()}</span></div>`).join('');
             setTimeout(() => { window.print(); }, 800);
         }
 
         function renderCatalog(d) {
             document.getElementById('catalog-grid').innerHTML = d.map(p => `
-                <div onclick='addItem(${JSON.stringify(p)})' class="p-6 bg-slate-50 rounded-[2rem] border-2 border-transparent hover:border-rose-500 hover:bg-white cursor-pointer transition-all shadow-sm">
-                    <p class="font-black text-xs uppercase italic tracking-tight">${p.Nama_Barang}</p>
-                    <div class="flex justify-between items-center mt-3">
-                        <p class="text-[10px] font-bold text-slate-400 italic">Rp ${p.Harga_Jual.toLocaleString()}</p>
-                        <p class="text-[9px] font-black text-rose-500 uppercase bg-rose-50 px-2 py-1 rounded-lg">Stok: ${p.Stok}</p>
+                <div onclick='addItem(${JSON.stringify(p)})' class="p-6 bg-slate-50 rounded-3xl border-2 border-transparent hover:border-rose-500 hover:bg-white cursor-pointer transition-all">
+                    <p class="font-black text-[10px] uppercase italic text-slate-800">${p.Nama_Barang}</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-[9px] font-bold text-slate-400">Rp ${p.Harga_Jual.toLocaleString()}</p>
+                        <p class="text-[8px] font-black text-rose-500 uppercase bg-rose-50 px-2 py-1 rounded-lg">Stok: ${p.Stok}</p>
                     </div>
                 </div>`).join('');
         }
