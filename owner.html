@@ -1,200 +1,62 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owner Dashboard - ALI RETAIL</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; min-height: 100vh; overflow-x: hidden; }
-        .ali-gradient { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
-        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(225, 29, 72, 0.2); border-radius: 10px; }
-        
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #receipt-print-area, #receipt-print-area * { visibility: visible; }
-            #receipt-print-area { position: absolute; left: 0; top: 0; width: 100% !important; color: black; background: white; }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Owner</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="p-8 lg:p-16">
 
-    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
-        <div>
-            <p class="text-[10px] font-black text-rose-500 uppercase tracking-[0.5em] italic mb-2">Executive Overview</p>
-            <h1 class="text-4xl font-black italic tracking-tighter uppercase">Ali <span class="text-rose-500">Retail.</span></h1>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right hidden md:block">
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Logged in as</p>
-                <p id="owner-name" class="font-black italic text-rose-500 uppercase tracking-tight">Owner</p>
-            </div>
-            <button onclick="logout()" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-600 hover:text-white transition-all shadow-xl">Sign Out</button>
-        </div>
-    </header>
+<body class="bg-gray-100 p-6">
 
-    <main class="max-w-7xl mx-auto space-y-12">
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="glass-card p-10 rounded-[3rem] border-l-4 border-rose-600 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-rose-600/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-rose-600/10 transition-all"></div>
-                <p class="text-[10px] font-black text-slate-400 uppercase italic mb-3 tracking-widest">Sales Today</p>
-                <h2 id="txt-sales" class="text-5xl font-black italic tracking-tighter text-white">Rp 0</h2>
-            </div>
-            
-            <div class="md:col-span-2 glass-card p-10 rounded-[3rem] flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-[10px] font-black text-rose-500 uppercase italic tracking-widest">Date Report</p>
-                    <h3 id="date-label" class="text-2xl font-black italic uppercase text-slate-200 tracking-tighter">Loading...</h3>
-                </div>
-                <div class="flex gap-4">
-                    <input type="date" id="filter-date" onchange="loadHistory()" 
-                        class="bg-slate-800/50 border border-white/10 p-4 rounded-2xl font-bold outline-none focus:border-rose-500 transition-all text-xs">
-                </div>
-            </div>
-        </div>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwIv5TIc1e4yWI12pM_VN6bHHlsFHnKUyCEgFCyRMN3RfhQYvC-TkvrF6mkoQaOpjWuAg/exec";
+const user = JSON.parse(sessionStorage.getItem("user"));
 
-        <div class="glass-card rounded-[3.5rem] overflow-hidden">
-            <div class="p-10 border-b border-white/5 flex justify-between items-center">
-                <h3 class="text-xs font-black uppercase italic tracking-widest text-slate-400">Transaction Logs</h3>
-                <div class="flex gap-2">
-                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
-                    <div class="w-2 h-2 rounded-full bg-slate-700"></div>
-                    <div class="w-2 h-2 rounded-full bg-slate-700"></div>
-                </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
-                            <th class="px-10 py-6">Time</th>
-                            <th class="px-10 py-6">Invoice ID</th>
-                            <th class="px-10 py-6">Method</th>
-                            <th class="px-10 py-6 text-right">Total Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-list" class="divide-y divide-white/5 font-bold text-sm">
-                        </tbody>
-                </table>
-            </div>
-            
-            <div id="empty-state" class="hidden py-32 text-center opacity-20">
-                <p class="italic uppercase font-black tracking-[0.5em] text-xs">No Records Found</p>
-            </div>
-        </div>
-    </main>
+if(!user || user.role !== "owner"){
+  location="index.html";
+}
+</script>
 
-    <div id="modal-receipt" onclick="this.classList.add('hidden')" class="hidden fixed inset-0 bg-slate-950/95 z-[500] flex items-center justify-center p-6 cursor-pointer">
-        <div id="receipt-print-area" class="bg-white p-12 font-mono text-[11px] text-slate-800 shadow-2xl rounded-sm">
-            <div class="text-center mb-6">
-                <h2 class="font-black text-lg uppercase tracking-tighter" id="r-store-name">...</h2>
-                <p id="r-address" class="text-[9px] opacity-60"></p>
-                <div class="border-b-2 border-dashed my-6 border-slate-200"></div>
-            </div>
-            <div class="flex justify-between mb-2"><span>INV:</span><span id="r-inv" class="font-bold"></span></div>
-            <div class="flex justify-between mb-6"><span>STAFF:</span><span id="r-cashier"></span></div>
-            <div id="r-items" class="space-y-3 mb-6 border-y border-dashed py-6 border-slate-200"></div>
-            <div class="mb-6">
-                <div class="flex justify-between font-black text-sm"><span>TOTAL:</span><span id="r-total"></span></div>
-                <div class="flex justify-between text-[9px] opacity-60"><span>METHOD:</span><span id="r-method"></span></div>
-            </div>
-            <p id="r-footer" class="text-center italic text-[9px] opacity-50"></p>
-        </div>
-    </div>
+<div class="flex justify-between mb-5">
+  <h2 class="text-2xl font-bold">Dashboard Owner</h2>
+  <button onclick="logout()" class="bg-gray-400 text-white px-3 py-1 rounded">Logout</button>
+</div>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXGshDNy244dPlfL_wm8wHCPyg4vk9Schw9gzFlwK8CEApsOpXc7kxfA5bK5P-0A5N/exec";
-        let storeSettings = {};
-        let session = JSON.parse(localStorage.getItem('ali_session'));
+<div class="grid grid-cols-3 gap-4">
+  <div class="bg-white p-5 rounded shadow">
+    <h3>Total Sales</h3>
+    <p id="sales" class="text-xl font-bold"></p>
+  </div>
 
-        window.onload = async () => {
-            // SECURITY CHECK: Must be Owner
-            if (!session || session.role !== 'owner') {
-                window.location.href = "index.html";
-                return;
-            }
-            document.getElementById('owner-name').innerText = session.nama;
+  <div class="bg-white p-5 rounded shadow">
+    <h3>Transaksi</h3>
+    <p id="trx" class="text-xl font-bold"></p>
+  </div>
 
-            // Set Today's Date (WITA)
-            const today = new Date().toLocaleDateString('en-CA', {timeZone: 'Asia/Makassar'});
-            document.getElementById('filter-date').value = today;
+  <div class="bg-white p-5 rounded shadow">
+    <h3>Rata-rata</h3>
+    <p id="avg" class="text-xl font-bold"></p>
+  </div>
+</div>
 
-            await Promise.all([loadSettings(), loadStats(), loadHistory()]);
-        };
+<script>
+async function load(){
+  let res = await fetch(API_URL+"?action=ownerFullStats");
+  let d = await res.json();
 
-        async function loadSettings() {
-            const res = await fetch(SCRIPT_URL + "?action=settings");
-            storeSettings = await res.json();
-            document.getElementById('receipt-print-area').style.width = (storeSettings.Lebar_Kertas || 58) + "mm";
-        }
+  sales.innerText = d.sales;
+  trx.innerText = d.transaksi;
+  avg.innerText = Math.round(d.rata2);
+}
 
-        async function loadStats() {
-            const res = await fetch(SCRIPT_URL + "?action=ownerFullStats");
-            const d = await res.json();
-            document.getElementById('txt-sales').innerText = "Rp " + d.sales.toLocaleString();
-        }
+function logout(){
+  sessionStorage.clear();
+  location="index.html";
+}
 
-        async function loadHistory() {
-            const date = document.getElementById('filter-date').value;
-            document.getElementById('date-label').innerText = new Date(date).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-            
-            const list = document.getElementById('history-list');
-            const empty = document.getElementById('empty-state');
-            
-            list.innerHTML = `<tr><td colspan="4" class="px-10 py-20 text-center animate-pulse opacity-30 tracking-widest uppercase text-xs">Fetching Data...</td></tr>`;
+load();
+setInterval(load,5000);
+</script>
 
-            const res = await fetch(SCRIPT_URL + "?action=getHistoryByDate&date=" + date);
-            const data = await res.json();
-            
-            if(data.length === 0) {
-                list.innerHTML = "";
-                empty.classList.remove('hidden');
-                return;
-            }
-
-            empty.classList.add('hidden');
-            list.innerHTML = data.map(t => `
-                <tr onclick="reprint('${t.inv}')" class="hover:bg-white/5 cursor-pointer transition-all group">
-                    <td class="px-10 py-8 text-rose-500 font-black italic tracking-tighter text-lg">${t.jam}</td>
-                    <td class="px-10 py-8 text-slate-300 uppercase italic tracking-tight">${t.inv}</td>
-                    <td class="px-10 py-8">
-                        <span class="px-3 py-1 bg-white/5 rounded-lg text-[10px] text-slate-500 uppercase tracking-widest border border-white/5 group-hover:border-rose-500/30 transition-all">${t.method}</span>
-                    </td>
-                    <td class="px-10 py-8 text-right text-xl font-black italic tracking-tighter">Rp ${t.total.toLocaleString()}</td>
-                </tr>
-            `).join('');
-        }
-
-        async function reprint(inv) {
-            const res = await fetch(SCRIPT_URL + "?action=getTransaction&inv=" + inv);
-            const d = await res.json();
-            
-            if(d.status === "success") {
-                document.getElementById('modal-receipt').classList.remove('hidden');
-                document.getElementById('r-store-name').innerText = storeSettings.Nama_Toko;
-                document.getElementById('r-address').innerText = storeSettings.Alamat_Toko;
-                document.getElementById('r-footer').innerText = storeSettings.Footer_Struk;
-                document.getElementById('r-inv').innerText = d.invoice;
-                document.getElementById('r-cashier').innerText = d.cashier;
-                document.getElementById('r-method').innerText = d.method;
-                document.getElementById('r-total').innerText = "Rp " + d.total.toLocaleString();
-                document.getElementById('r-items').innerHTML = d.items.map(i => `
-                    <div class="flex justify-between">
-                        <span>${i.nama} x${i.qty}</span>
-                        <span>${i.sub.toLocaleString()}</span>
-                    </div>`).join('');
-                setTimeout(() => { window.print(); }, 800);
-            }
-        }
-
-        function logout() { localStorage.clear(); window.location.href = "index.html"; }
-    </script>
 </body>
 </html>
