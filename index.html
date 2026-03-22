@@ -20,29 +20,38 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwIv5TIc1e4yWI12pM_VN6bHHlsFHnKUyCEgFCyRMN3RfhQYvC-TkvrF6mkoQaOpjWuAg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxTzI2e5nv9P8q9FVcvj2q4AoxSKBzqVLz32AaEL4pWaBLd_qr1Ol3RWD_8VYrsuOsfVA/exec";
 
 async function login(){
-  let res = await fetch(API_URL,{
-    method:"POST",
-    body: JSON.stringify({
-      action:"login",
-      username: user.value,
-      password: pass.value
-    })
-  });
+  try{
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        action:"login",
+        username: document.getElementById("user").value.trim(),
+        password: document.getElementById("pass").value.trim()
+      })
+    });
 
-  let data = await res.json();
+    let data = await res.json();
 
-  if(data.status==="success"){
-    sessionStorage.setItem("user", JSON.stringify(data.user));
+    if(data.status==="success"){
+      sessionStorage.setItem("user", JSON.stringify(data.user));
 
-    if(data.user.role==="kasir") location="kasir.html";
-    if(data.user.role==="admin") location="admin.html";
-    if(data.user.role==="owner") location="owner.html";
+      if(data.user.role==="kasir") location="kasir.html";
+      if(data.user.role==="admin") location="admin.html";
+      if(data.user.role==="owner") location="owner.html";
 
-  }else{
-    alert("Login gagal");
+    }else{
+      alert(data.message || "Login gagal");
+    }
+
+  }catch(err){
+    alert("Tidak bisa konek ke server");
+    console.error(err);
   }
 }
 </script>
