@@ -2,14 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Owner</title>
+<title>Owner Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 p-6">
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwIv5TIc1e4yWI12pM_VN6bHHlsFHnKUyCEgFCyRMN3RfhQYvC-TkvrF6mkoQaOpjWuAg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwIv5TIc1e4yWI12pM_VN6bHHlsFHnKUyCEgFCyRMN3RfhQYvC-TkvrF6mkoQaOpjWuAg/exec;
 const user = JSON.parse(sessionStorage.getItem("user"));
 
 if(!user || user.role !== "owner"){
@@ -17,26 +17,31 @@ if(!user || user.role !== "owner"){
 }
 </script>
 
-<div class="flex justify-between mb-5">
-  <h2 class="text-2xl font-bold">Dashboard Owner</h2>
+<div class="flex justify-between mb-6">
+  <h2 class="text-2xl font-bold">📊 Owner Dashboard</h2>
   <button onclick="logout()" class="bg-gray-400 text-white px-3 py-1 rounded">Logout</button>
 </div>
 
-<div class="grid grid-cols-3 gap-4">
-  <div class="bg-white p-5 rounded shadow">
+<div class="grid grid-cols-3 gap-5 mb-6">
+  <div class="bg-white p-5 rounded-xl shadow">
     <h3>Total Sales</h3>
-    <p id="sales" class="text-xl font-bold"></p>
+    <p id="sales" class="text-2xl font-bold text-green-600"></p>
   </div>
 
-  <div class="bg-white p-5 rounded shadow">
+  <div class="bg-white p-5 rounded-xl shadow">
     <h3>Transaksi</h3>
-    <p id="trx" class="text-xl font-bold"></p>
+    <p id="trx" class="text-2xl font-bold text-blue-600"></p>
   </div>
 
-  <div class="bg-white p-5 rounded shadow">
+  <div class="bg-white p-5 rounded-xl shadow">
     <h3>Rata-rata</h3>
-    <p id="avg" class="text-xl font-bold"></p>
+    <p id="avg" class="text-2xl font-bold text-purple-600"></p>
   </div>
+</div>
+
+<div class="bg-white p-5 rounded-xl shadow">
+  <h3 class="mb-3 font-bold">Insight</h3>
+  <div id="insight"></div>
 </div>
 
 <script>
@@ -47,6 +52,11 @@ async function load(){
   sales.innerText = d.sales;
   trx.innerText = d.transaksi;
   avg.innerText = Math.round(d.rata2);
+
+  insight.innerHTML = `
+    Hari ini ada ${d.transaksi} transaksi<br>
+    Total penjualan Rp ${d.sales}
+  `;
 }
 
 function logout(){
